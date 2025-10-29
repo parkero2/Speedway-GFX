@@ -12,14 +12,23 @@ let appState = {
         expandSlug: false,
         showTower: false,  // Start with tower hidden
         showStrip: false,   // Start with timing strip hidden
-        showWeather: false  // Start with weather hidden
+        showWeather: false,  // Start with weather hidden
+        autoWeather: false   // Start with auto weather disabled
     },
     weather: {
         icon: "sunny.svg",
         conditions: "Clear",
         temperature: "24°C",
         windDirection: "NW",
-        windSpeed: "15 km/h"
+        windSpeed: "15 km/h",
+        isError: false
+    },
+    weatherApi: {
+        apiKey: "b3d099c80c975b69d647e14b7e9475d3",
+        lastUpdate: null,
+        location: null,
+        latitude: null,
+        longitude: null
     },
     lastTimingDataRaw: null // Store raw timing data to detect changes
 };
@@ -60,7 +69,13 @@ const elements = {
     loadTimingData: document.getElementById('loadTimingData'),
     pauseRefresh: document.getElementById('pauseRefresh'),
     resumeRefresh: document.getElementById('resumeRefresh'),
-    timingStatus: document.getElementById('timingStatus')
+    timingStatus: document.getElementById('timingStatus'),
+    autoWeather: document.getElementById('autoWeather'),
+    refreshWeather: document.getElementById('refreshWeather'),
+    weatherStatus: document.getElementById('weatherStatus'),
+    useMyLocation: document.getElementById('useMyLocation'),
+    latitude: document.getElementById('latitude'),
+    longitude: document.getElementById('longitude')
 };
 
 // Animation timing
@@ -70,6 +85,12 @@ let revealAnimationInProgress = false;
 // Flag notification timers
 let flagNotificationTimer;
 let currentFlagState = null;
+
+// Timing refresh
+let timingRefreshInterval;
+
+// Weather refresh
+let weatherRefreshInterval;
 
 // Initialize application
 async function init() {
@@ -98,10 +119,18 @@ async function init() {
         updateTimingStatus();
     }
     
+    // Start weather refresh if auto weather is enabled
+    if (appState.ui.autoWeather) {
+        startWeatherRefresh();
+    }
+    
     console.log('Motorsport Broadcast Graphics Overlay initialized');
     console.log('Event:', appState.event.venue, appState.event.hashtag);
     console.log('Keyboard shortcuts: B (bug), T (tower), S (strip), W (weather), G/Y/R/F (flags), [/] (laps)');
+    console.log('Weather API: Auto weather is', appState.ui.autoWeather ? 'ON' : 'OFF');
     console.log('Timing shortcuts: L (load timing data), P (pause refresh), Q (resume refresh), D (debug data)');
+    console.log('Weather shortcuts: M (manual weather refresh), A (toggle auto weather)');
+    console.log('Location: Use "Use My Location" button or enter coordinates manually');
     console.log('Flag shortcuts: G (green), Y (yellow), R (red), N (no-light), F (read from timing data), H (show for 2s then hide)');
 }
 
@@ -392,8 +421,6 @@ function startTimingDataRefresh(intervalMs = 1000) {
 }
 
 // Stop timing data refresh
-let timingRefreshInterval = null;
-
 function startTimingRefresh(intervalMs = 1000) {
     if (timingRefreshInterval) {
         clearInterval(timingRefreshInterval);
@@ -413,6 +440,374 @@ function stopTimingRefresh() {
         timingRefreshInterval = null;
         updateTimingStatus();
         console.log('Timing data refresh stopped');
+    }
+}
+
+// Weather API Functions
+// Get user location using browser geolocation API or manual coordinates
+async function getUserLocation() {
+    try {
+        // First check if we have manual coordinates
+        if (appState.weatherApi.latitude && appState.weatherApi.longitude) {
+            console.log('🌍 Using manual coordinates:', appState.weatherApi.latitude, appState.weatherApi.longitude);
+            return {
+                latitude: appState.weatherApi.latitude,
+                longitude: appState.weatherApi.longitude,
+                source: 'manual'
+            };
+        }
+        
+        // Try browser geolocation if available
+        if (!navigator.geolocation) {
+            throw new Error('Geolocation is not supported by this browser');
+        }
+        
+        console.log('🌍 Requesting browser location...');
+        
+        const position = await new Promise((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    console.log('🌍 Browser location obtained:', position.coords.latitude, position.coords.longitude);
+                    resolve(position);
+                },
+                (error) => {
+                    console.log('🌍 Browser location failed:', error.message);
+                    reject(error);
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 300000 // 5 minutes
+                }
+            );
+        });
+        
+        return {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+            source: 'browser'
+        };
+    } catch (error) {
+        console.error('🌍 Location detection failed:', error.message);
+        throw new Error('Location unavailable. Please set coordinates manually.');
+    }
+}
+
+// Request browser location and save to manual coordinates
+async function requestBrowserLocation() {
+    try {
+        updateWeatherStatus('Getting your location...');
+        
+        if (!navigator.geolocation) {
+            throw new Error('Geolocation is not supported by this browser');
+        }
+        
+        const position = await new Promise((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(
+                resolve,
+                reject,
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 60000 // 1 minute
+                }
+            );
+        });
+        
+        // Save coordinates to state and UI
+        appState.weatherApi.latitude = position.coords.latitude;
+        appState.weatherApi.longitude = position.coords.longitude;
+        
+        elements.latitude.value = position.coords.latitude.toFixed(4);
+        elements.longitude.value = position.coords.longitude.toFixed(4);
+        
+        updateWeatherStatus('Location detected!');
+        saveStateToStorage();
+        
+        console.log('✅ Browser location saved:', position.coords.latitude, position.coords.longitude);
+        
+        // If auto weather is enabled, refresh weather data
+        if (appState.ui.autoWeather) {
+            setTimeout(() => updateWeatherFromAPI(), 1000);
+        }
+        
+    } catch (error) {
+        console.error('❌ Browser location request failed:', error.message);
+        
+        let errorMsg = 'Location request failed';
+        if (error.code === 1) {
+            errorMsg = 'Location access denied';
+        } else if (error.code === 2) {
+            errorMsg = 'Location unavailable';
+        } else if (error.code === 3) {
+            errorMsg = 'Location request timeout';
+        }
+        
+        updateWeatherStatus(errorMsg);
+        
+        // Clear the status after 3 seconds
+        setTimeout(() => updateWeatherStatus(), 3000);
+    }
+}
+
+async function fetchWeatherData(lat, lon, apiKey) {
+    try {
+        // Use wttr.in free weather service - no API key required
+        const url = `https://wttr.in/${lat},${lon}?format=j1`;
+        console.log('🌤️ Weather API URL:', url);
+        
+        const response = await fetch(url);
+        console.log('🌤️ Weather API response status:', response.status, response.statusText);
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('🌤️ Weather API error response:', errorText);
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        console.log('🌤️ Weather API response data:', data);
+        
+        const current = data.current_condition[0];
+        const weather = data.current_condition[0];
+        
+        // Map weather condition to icon using wttr.in weather codes
+        const iconName = mapWttrWeatherCodeToIcon(parseInt(current.weatherCode));
+        
+        // Format wind direction from degrees
+        const windDirection = degreesToCompass(parseInt(current.winddirDegree || 0));
+        
+        const weatherResult = {
+            icon: iconName,
+            conditions: current.weatherDesc[0].value,
+            temperature: `${current.temp_C}°C`,
+            windDirection: windDirection,
+            windSpeed: `${current.windspeedKmph} km/h`,
+            location: `Lat: ${lat}, Lon: ${lon}`
+        };
+        
+        console.log('🌤️ Formatted weather result:', weatherResult);
+        return weatherResult;
+    } catch (error) {
+        console.error('🌤️ Weather API failed:', error.message);
+        throw error;
+    }
+}
+
+// Map wttr.in weather condition codes to local weather icons
+function mapWttrWeatherCodeToIcon(weatherCode) {
+    // wttr.in weather codes: https://github.com/chubin/wttr.in/blob/master/lib/constants.py
+    
+    // Clear
+    if (weatherCode === 113) return 'sunny.svg';
+    
+    // Partly cloudy
+    if (weatherCode === 116) return 'partly_cloudy.svg';
+    
+    // Cloudy
+    if (weatherCode === 119) return 'cloudy.svg';
+    if (weatherCode === 122) return 'mostly_cloudy.svg';
+    
+    // Mist / Fog
+    if ([143, 248, 260].includes(weatherCode)) return 'mist.svg';
+    
+    // Rain
+    if ([176, 263, 266, 293, 296].includes(weatherCode)) return 'drizzle.svg';
+    if ([179, 182, 185, 281, 284, 311, 314, 317, 320].includes(weatherCode)) return 'scattered_showers.svg';
+    if ([299, 302, 305, 308, 356, 359].includes(weatherCode)) return 'showers.svg';
+    
+    // Snow
+    if ([179, 227, 323, 326, 329, 332, 335, 338, 350, 353].includes(weatherCode)) return 'flurries.svg';
+    if ([230, 341, 344, 368, 371, 374, 377].includes(weatherCode)) return 'heavy_snow.svg';
+    if ([362, 365].includes(weatherCode)) return 'snow_showers.svg';
+    if ([392, 395].includes(weatherCode)) return 'blizzard.svg';
+    
+    // Sleet / Ice
+    if ([182, 185, 281, 284, 311, 314, 317, 320, 350, 353].includes(weatherCode)) return 'sleet_hail.svg';
+    
+    // Thunderstorms
+    if ([386, 389].includes(weatherCode)) return 'isolated_tstorms.svg';
+    if ([392, 395].includes(weatherCode)) return 'strong_tstorms.svg';
+    
+    // Default fallback
+    return 'clear.svg';
+}
+
+// Map OpenWeatherMap weather condition codes to local weather icons (kept for reference)
+function mapWeatherConditionToIcon(conditionId, iconCode) {
+    // OpenWeatherMap condition codes: https://openweathermap.org/weather-conditions
+    
+    // Thunderstorm
+    if (conditionId >= 200 && conditionId < 300) {
+        return conditionId >= 230 ? 'strong_tstorms.svg' : 'isolated_tstorms.svg';
+    }
+    
+    // Drizzle
+    if (conditionId >= 300 && conditionId < 400) {
+        return 'drizzle.svg';
+    }
+    
+    // Rain
+    if (conditionId >= 500 && conditionId < 600) {
+        if (conditionId === 511) return 'sleet_hail.svg'; // Freezing rain
+        return conditionId >= 520 ? 'showers.svg' : 'scattered_showers.svg';
+    }
+    
+    // Snow
+    if (conditionId >= 600 && conditionId < 700) {
+        if (conditionId === 611 || conditionId === 612 || conditionId === 613) return 'sleet_hail.svg';
+        if (conditionId === 615 || conditionId === 616) return 'wintry_mix.svg';
+        if (conditionId >= 620) return 'snow_showers.svg';
+        return conditionId >= 602 ? 'heavy_snow.svg' : 'flurries.svg';
+    }
+    
+    // Atmosphere
+    if (conditionId >= 700 && conditionId < 800) {
+        if (conditionId === 701 || conditionId === 741) return 'mist.svg';
+        if (conditionId === 711) return 'smoke.svg';
+        if (conditionId === 721 || conditionId === 731) return 'dust.svg';
+        if (conditionId === 751 || conditionId === 761) return 'dust.svg';
+        if (conditionId === 762) return 'dust.svg';
+        if (conditionId === 771) return 'wind.svg';
+        if (conditionId === 781) return 'tornado.svg';
+        return 'fog.svg';
+    }
+    
+    // Clear
+    if (conditionId === 800) {
+        // Use day/night detection from icon code
+        return iconCode.includes('n') ? 'clear.svg' : 'sunny.svg';
+    }
+    
+    // Clouds
+    if (conditionId >= 801 && conditionId < 900) {
+        const isNight = iconCode.includes('n');
+        if (conditionId === 801) {
+            return isNight ? 'partly_clear.svg' : 'mostly_sunny.svg';
+        } else if (conditionId === 802) {
+            return isNight ? 'mostly_cloudy_night.svg' : 'partly_cloudy.svg';
+        } else {
+            return isNight ? 'mostly_cloudy_night.svg' : 'mostly_cloudy.svg';
+        }
+    }
+    
+    // Default fallback
+    return 'clear.svg';
+}
+
+// Convert wind degrees to compass direction
+function degreesToCompass(degrees) {
+    const directions = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
+    const index = Math.round(degrees / 22.5) % 16;
+    return directions[index];
+}
+
+async function updateWeatherFromAPI() {
+    if (!appState.ui.autoWeather) {
+        console.log('⚠️ Weather update skipped - autoWeather:', appState.ui.autoWeather);
+        return;
+    }
+    
+    try {
+        console.log('🔄 Starting weather update...');
+        updateWeatherStatus('Getting location...');
+        
+        // Get location (browser geolocation or manual coordinates)
+        const location = await getUserLocation();
+        appState.weatherApi.location = location;
+        
+        updateWeatherStatus('Fetching weather...');
+        
+        // Get weather data (wttr.in doesn't require API key)
+        const weatherData = await fetchWeatherData(
+            location.latitude,
+            location.longitude,
+            null // No API key needed for wttr.in
+        );
+        
+        // Update app state
+        appState.weather = {
+            ...weatherData,
+            isError: false
+        };
+        
+        appState.weatherApi.lastUpdate = new Date();
+        
+        // Update UI
+        updateWeatherDisplay();
+        updateWeatherStatus(`Weather updated (${location.source})`);
+        
+        console.log('✅ Weather update successful using', location.source, 'location');
+        
+    } catch (error) {
+        console.error('❌ Weather update failed:', error.message);
+        setWeatherError();
+        updateWeatherStatus(`Error: ${error.message}`);
+    }
+}
+
+function setWeatherError() {
+    console.log('🚨 Setting weather to error state');
+    appState.weather = {
+        icon: 'clear.svg',
+        conditions: 'ERR',
+        temperature: 'ERR',
+        windDirection: 'ERR',
+        windSpeed: 'ERR',
+        isError: true
+    };
+    updateWeatherDisplay();
+}
+
+function updateWeatherDisplay() {
+    elements.weatherIcon.src = `assets/weather_icons/${appState.weather.icon}`;
+    elements.weatherConditions.textContent = appState.weather.conditions;
+    elements.temperature.textContent = appState.weather.temperature;
+    elements.windDirection.textContent = appState.weather.windDirection;
+    elements.windSpeed.textContent = appState.weather.windSpeed;
+}
+
+function startWeatherRefresh() {
+    if (weatherRefreshInterval) {
+        clearInterval(weatherRefreshInterval);
+    }
+    
+    if (appState.ui.autoWeather) {
+        // Update immediately
+        updateWeatherFromAPI();
+        
+        // Then update every 10 minutes (weather doesn't change frequently)
+        weatherRefreshInterval = setInterval(() => {
+            updateWeatherFromAPI();
+        }, 10 * 60 * 1000);
+        
+        console.log('Weather refresh started (10 minute interval)');
+    }
+}
+
+function stopWeatherRefresh() {
+    if (weatherRefreshInterval) {
+        clearInterval(weatherRefreshInterval);
+        weatherRefreshInterval = null;
+        console.log('Weather refresh stopped');
+    }
+}
+
+function updateWeatherStatus(message = null) {
+    if (!elements.weatherStatus) return;
+    
+    if (message) {
+        elements.weatherStatus.textContent = message;
+        elements.weatherStatus.className = 'timing-status';
+        return;
+    }
+    
+    if (appState.ui.autoWeather) {
+        elements.weatherStatus.textContent = 'Auto weather: ON';
+        elements.weatherStatus.className = 'timing-status on';
+    } else {
+        elements.weatherStatus.textContent = 'Auto weather: OFF';
+        elements.weatherStatus.className = 'timing-status off';
     }
 }
 
@@ -483,6 +878,17 @@ function setupEventListeners() {
         startTimingRefresh(1000);
         updateTimingStatus();
     });
+    
+    // Weather API controls
+    elements.autoWeather.addEventListener('change', toggleAutoWeather);
+    elements.refreshWeather.addEventListener('click', () => {
+        updateWeatherFromAPI().then(() => {
+            console.log('Weather data refreshed manually');
+        });
+    });
+    elements.useMyLocation.addEventListener('click', requestBrowserLocation);
+    elements.latitude.addEventListener('input', saveManualCoordinates);
+    elements.longitude.addEventListener('input', saveManualCoordinates);
 }
 
 // Handle keyboard shortcuts
@@ -549,6 +955,17 @@ function handleKeyPress(event) {
         case 'd':
             // Show debug info
             debugTimingData();
+            break;
+        case 'm':
+            // Manually refresh weather
+            updateWeatherFromAPI().then(() => {
+                console.log('Weather data refreshed manually');
+            });
+            break;
+        case 'a':
+            // Toggle auto weather
+            toggleAutoWeather();
+            console.log('Auto weather toggled:', appState.ui.autoWeather ? 'ON' : 'OFF');
             break;
     }
 }
@@ -644,6 +1061,15 @@ function updateUI() {
     elements.showTower.checked = appState.ui.showTower;
     elements.showStrip.checked = appState.ui.showStrip;
     elements.showWeather.checked = appState.ui.showWeather;
+    elements.autoWeather.checked = appState.ui.autoWeather;
+    
+    // Update coordinate inputs
+    if (appState.weatherApi.latitude !== null) {
+        elements.latitude.value = appState.weatherApi.latitude.toFixed(4);
+    }
+    if (appState.weatherApi.longitude !== null) {
+        elements.longitude.value = appState.weatherApi.longitude.toFixed(4);
+    }
     
     // Update weather data
     elements.weatherIcon.src = `assets/weather_icons/${appState.weather.icon}`;
@@ -651,6 +1077,9 @@ function updateUI() {
     elements.temperature.textContent = appState.weather.temperature;
     elements.windDirection.textContent = appState.weather.windDirection;
     elements.windSpeed.textContent = appState.weather.windSpeed;
+    
+    // Update weather status
+    updateWeatherStatus();
     
     // Apply visibility states - bug is always visible, hashtag is always visible
     // Flag notifications take priority over manual expansion
@@ -1125,6 +1554,44 @@ function toggleWeather() {
     saveStateToStorage();
 }
 
+// Toggle auto weather
+function toggleAutoWeather() {
+    appState.ui.autoWeather = !appState.ui.autoWeather;
+    elements.autoWeather.checked = appState.ui.autoWeather;
+    
+    if (appState.ui.autoWeather) {
+        startWeatherRefresh();
+    } else {
+        stopWeatherRefresh();
+    }
+    
+    updateWeatherStatus();
+    saveStateToStorage();
+}
+
+// Save manual coordinates
+function saveManualCoordinates() {
+    const lat = parseFloat(elements.latitude.value);
+    const lon = parseFloat(elements.longitude.value);
+    
+    if (!isNaN(lat) && !isNaN(lon)) {
+        appState.weatherApi.latitude = lat;
+        appState.weatherApi.longitude = lon;
+        
+        console.log('📍 Manual coordinates saved:', lat, lon);
+        
+        // If auto weather is enabled, refresh weather data
+        if (appState.ui.autoWeather) {
+            updateWeatherFromAPI();
+        }
+    } else {
+        appState.weatherApi.latitude = null;
+        appState.weatherApi.longitude = null;
+    }
+    
+    saveStateToStorage();
+}
+
 // Toggle hashtag visibility
 function toggleHashtag() {
     // Hashtag is always visible now - remove this function
@@ -1304,7 +1771,13 @@ function saveStateToStorage() {
     try {
         localStorage.setItem('motorsportOverlayState', JSON.stringify({
             event: appState.event,
-            ui: appState.ui
+            ui: appState.ui,
+            weatherApi: {
+                apiKey: appState.weatherApi.apiKey,
+                latitude: appState.weatherApi.latitude,
+                longitude: appState.weatherApi.longitude
+                // Don't save location or lastUpdate - these should be fresh each session
+            }
         }));
     } catch (error) {
         console.warn('Could not save state to localStorage:', error);
@@ -1327,6 +1800,11 @@ function loadStateFromStorage() {
             }
             if (parsedState.ui) {
                 appState.ui = { ...appState.ui, ...parsedState.ui };
+            }
+            if (parsedState.weatherApi) {
+                appState.weatherApi.apiKey = parsedState.weatherApi.apiKey || "";
+                appState.weatherApi.latitude = parsedState.weatherApi.latitude || null;
+                appState.weatherApi.longitude = parsedState.weatherApi.longitude || null;
             }
         }
     } catch (error) {

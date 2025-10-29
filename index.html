@@ -124,6 +124,19 @@
                         <span id="timingStatus" class="timing-status">Auto-refresh: OFF</span>
                     </div>
                 </div>
+                <div class="control-group">
+                    <label>Weather:</label>
+                    <div class="weather-controls">
+                        <label><input type="checkbox" id="autoWeather"> Auto Weather</label>
+                        <button id="useMyLocation" class="timing-btn">Use My Location</button>
+                        <div class="location-inputs">
+                            <input type="number" id="latitude" placeholder="Latitude" class="coord-input" step="0.0001">
+                            <input type="number" id="longitude" placeholder="Longitude" class="coord-input" step="0.0001">
+                        </div>
+                        <button id="refreshWeather" class="timing-btn">Refresh Weather</button>
+                        <span id="weatherStatus" class="timing-status">Auto weather: OFF</span>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

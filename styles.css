@@ -786,6 +786,64 @@ body {
     border: 1px solid var(--flag-red);
 }
 
+/* Weather Controls */
+.weather-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.api-key-input {
+    padding: 6px 8px;
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    background: var(--bg-800);
+    color: var(--text-hi);
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 400;
+}
+
+.api-key-input::placeholder {
+    color: var(--text-med);
+    opacity: 0.7;
+}
+
+.api-key-input:focus {
+    outline: none;
+    border-color: var(--flag-green);
+    background: var(--bg-700);
+}
+
+.location-inputs {
+    display: flex;
+    gap: 8px;
+}
+
+.coord-input {
+    padding: 6px 8px;
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    background: var(--bg-800);
+    color: var(--text-hi);
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 400;
+    flex: 1;
+    width: 0; /* Allow flexbox to control width */
+}
+
+.coord-input::placeholder {
+    color: var(--text-med);
+    opacity: 0.7;
+}
+
+.coord-input:focus {
+    outline: none;
+    border-color: var(--flag-green);
+    background: var(--bg-700);
+}
+
 /* Remove the responsive adjustment that changes bug position when tower is visible */
 /* Keep bug always in the same position */
 
