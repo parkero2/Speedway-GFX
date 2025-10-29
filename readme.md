@@ -20,7 +20,8 @@ B - Toggle Bug Slug expansion (venue information)
 T - Toggle Timing Tower visibility
 S - Toggle Timing Strip visibility
 W - Toggle Weather display
-Flag Controls:
+
+## Flag Controls:
 
 N - Set flag to No Light (clear all flags)
 G - Set flag to Green
@@ -28,3 +29,20 @@ Y - Set flag to Yellow
 R - Set flag to Red
 F - Read flag status from timing data file (live data)
 H - 2s flag
+
+## Weather Controls:
+
+M - Manual weather refresh
+A - Toggle auto weather on/off
+
+## Timing Data Controls:
+
+L - Load/refresh timing data manually
+P - Pause auto-refresh of timing data
+Q - Resume auto-refresh of timing data
+D - Debug timing data (show raw data in console)
+
+## Lap Controls:
+
+[ - Decrease current lap
+] - Increase current lap
