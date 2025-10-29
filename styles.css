@@ -1,0 +1,762 @@
+:root {
+    /* Color Variables */
+    --bg-900: rgba(10, 10, 12, 0.92);      /* darkest panels */
+    --bg-800: rgba(18, 18, 22, 0.88);      /* row background */
+    --bg-700: rgba(30, 30, 36, 0.80);      /* bug background */
+    --text-hi: #ffffff;
+    --text-med: rgba(255, 255, 255, 0.78);
+    --line: rgba(255, 255, 255, 0.12);
+
+    --flag-green: #00b050;
+    --flag-yellow: #ffcc00;
+    --flag-red: #e53935;
+
+    /* Layout Variables */
+    --tower-w: 200px;
+    --bug-w: 200px;
+    --bug-h: 88px;
+    --row-h: 44px;
+        --safe-margin: 24px;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-variant-numeric: tabular-nums;
+    background: #f0f0f0; /* Light grey browser background */
+    color: var(--text-hi);
+    font-size: 14px;
+    line-height: 1.2;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    position: relative;
+}
+
+/* Bug Component */
+.bug {
+    position: fixed;
+    bottom: calc(var(--safe-margin) + 32px);  /* Moved 3px closer to hashtag line */
+    left: var(--safe-margin);
+    z-index: 110;
+    transition: all 300ms ease-out;
+    overflow: visible; /* Allow flag slug to appear above */
+    contain: none; /* Remove containment constraints */
+    clip: none; /* Remove any clipping */
+    mask: none; /* Remove any masking */
+}
+
+/* When tower is open, bug moves to top */
+.bug.tower-open {
+    bottom: calc(var(--safe-margin) + 33px + 55px + 25px + (17 * var(--row-h)));  /* Tower bottom + header + labels + rows */
+}
+
+/* When weather is open, bug moves up to accommodate weather height */
+.bug.weather-open {
+    bottom: calc(var(--safe-margin) + 31px + 226px);  /* Weather bottom + weather height */
+}
+
+.bug-panel {
+    display: flex;
+    height: var(--bug-h);
+    background: var(--bg-700);
+    clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%); /* Restore diagonal cut */
+    overflow: visible; /* Allow slug to appear above */
+    transition: width 250ms ease-out;
+    width: var(--bug-w);
+    contain: none; /* Remove containment constraints */
+    position: relative; /* Ensure it's a stacking context */
+}
+
+.bug.expanded .bug-panel {
+    width: var(--bug-w); /* Keep same width since slug is now above */
+}
+
+.bug-logo {
+    width: var(--bug-w);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-900);
+    flex-shrink: 0;
+    position: relative;
+    z-index: 2;  /* Ensure logo stays on top of the slug */
+}
+
+.logo-image {
+    width: 180px;  /* Increased from 140px to almost fill 200px panel */
+    height: auto;
+    max-height: 75px;  /* Increased from 60px to almost fill 88px height */
+}
+
+.bug-slug {
+    width: 186px; /* 4px shorter (was 190px, now 186px) */
+    height: 40px; /* Set height for top animation */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    background: var(--bg-700);
+    clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%); /* Diagonal top right corner */
+    opacity: 0;
+    transform: translateY(50px); /* Start well below, animate up */
+    transition: all 250ms ease-out;
+    position: absolute;
+    top: -40px; /* Position so bottom meets top of bug */
+    left: 0; /* Anchored to the left */
+    z-index: 100; /* Lower than bug (110) so it sits behind */
+    visibility: hidden; /* Hide when not expanded */
+}
+
+.bug.expanded .bug-slug {
+    opacity: 1;
+    transform: translateY(0); /* Slide up into final position */
+    visibility: visible; /* Show when expanded */
+}
+
+.flag-notification {
+    font-weight: 700;
+    font-size: 24px;  /* Increased from 16px (50% larger) */
+    text-transform: uppercase;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;  /* Take full width of parent */
+    transition: color 300ms ease-out;
+    text-align: center;  /* Center the text */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #1a1a1a;  /* Dark grey text for all states */
+    margin: 0;  /* Remove any default margins */
+    padding: 0;  /* Remove any default padding */
+}
+
+.bug-slug.green {
+    background: var(--flag-green);
+
+}
+
+.bug-slug.yellow {
+    background: var(--flag-yellow);
+
+}
+
+.bug-slug.red {
+    background: var(--flag-red);
+    animation: redFlagFlash 2s ease-in-out infinite;  /* Slowed down from 1s to 2s */
+
+}
+
+@keyframes redFlagFlash {
+    0%, 100% { 
+        opacity: 1;
+    }
+    50% { 
+        opacity: 0.3;
+    }
+}
+
+.hashtag-line {
+    position: fixed;
+    bottom: var(--safe-margin);
+    left: var(--safe-margin);
+    background: var(--bg-800);
+    padding: 8px 16px;
+
+    width: 200px;
+    z-index: 100;
+    opacity: 1;  /* Always visible */
+    transform: none;
+    transition: none;
+    pointer-events: none;
+}
+
+#hashtag {
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--text-med);
+}
+
+/* Timing Tower */
+.tower {
+    position: fixed;
+    left: var(--safe-margin);
+    bottom: calc(var(--safe-margin) + 33px);  /* Directly on top of hashtag */
+    width: var(--tower-w);
+    z-index: 105;  /* Between hashtag and bug */
+    opacity: 0;
+    transform: scaleY(0);
+    transform-origin: bottom;
+    transition: all 300ms ease-out;
+}
+
+.tower.show {
+    opacity: 1;
+    transform: scaleY(1);
+}
+
+.tower-panel {
+    background: var(--bg-800);
+    overflow: hidden;
+    /* Remove bottom padding since hashtag is separate now */
+}
+
+.tower-header {
+    background: var(--bg-900);
+    padding: 16px 20px;
+    height: auto;  /* Remove fixed height */
+    display: flex;
+    flex-direction: column;
+    gap: 12px;  /* Consistent spacing between elements */
+}
+
+.lockup {
+    font-weight: 800;
+    font-size: 18px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.lap-info {
+    margin: 0;  /* Remove margin since we're using gap */
+}
+
+.lap-text {
+    font-weight: 700;
+    font-size: 16px;
+    text-transform: uppercase;
+}
+
+.progress-bar-container {
+    width: 100%;
+    height: 18px; 
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 0; 
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    background: var(--flag-green);
+    transition: all 250ms ease-out;
+    border-radius: 0;  /* Remove rounded corners */
+}
+
+.progress-bar.yellow {
+    background: var(--flag-yellow);
+}
+
+.progress-bar.red {
+    background: var(--flag-red);
+}
+
+.progress-bar.no-light {
+    background: #ffffff;
+}
+
+.column-labels {
+    background: var(--bg-900);
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--line);
+}
+
+.position-label {
+    font-weight: 700;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-med);
+}
+
+.rider-rows {
+    height: calc(17 * var(--row-h));  /* Fixed height for exactly 17 rows */
+    overflow: hidden;
+}
+
+.rider-row {
+    height: var(--row-h);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    border-bottom: 1px solid var(--line);
+    background: var(--bg-800);
+    position: relative;
+    overflow: hidden;
+    opacity: 0;
+    transition: all 300ms ease-out;
+}
+
+.rider-row.revealed {
+    opacity: 1;
+}
+
+.rider-row.empty-row {
+    opacity: 0;
+    pointer-events: none;
+    border-bottom: none;
+}
+
+.rider-row:last-child {
+    border-bottom: none;
+}
+
+.position {
+    width: 40px;
+    text-align: right;
+    font-weight: 700;
+    font-size: 16px;
+    background: var(--bg-900);
+    margin-right: 16px;
+    padding: 8px 12px;
+    border-radius: 2px;
+    flex-shrink: 0;
+}
+
+.rider-name {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    font-size: 16px;
+    min-width: 0;
+}
+
+.first-name {
+    font-weight: 400;
+    margin-right: 8px;
+}
+
+.last-name {
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.rider-number {
+    background: var(--team-default, #5a78c7);
+    color: var(--text-hi);
+    font-weight: 700;
+    font-size: 14px;
+    padding: 3px 4px; /* Reduced padding for tighter fit */
+    border-radius: 4px;
+    width: 45px; /* Forced width as requested */
+    text-align: center;
+    flex-shrink: 0;
+}
+
+/* Team Color Reveal Animation - Rebuilt */
+.rider-row {
+    height: var(--row-h);
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    border-bottom: 1px solid var(--line);
+    background: var(--bg-800);
+    position: relative;
+    overflow: hidden;
+    opacity: 0;
+    transition: all 300ms ease-out;
+}
+
+.rider-row::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: var(--team-color, #5a78c7);
+    z-index: 5;
+    transition: transform 500ms ease-out;
+}
+
+.rider-row.animate::before {
+    transform: translateX(200%);
+}
+
+.rider-row > * {
+    position: relative;
+    z-index: 1;
+    opacity: 0;
+    transition: opacity 200ms ease-out 250ms; /* Delay to reveal during swipe */
+}
+
+.rider-row.revealed {
+    opacity: 1;
+}
+
+.rider-row.revealed > * {
+    opacity: 1;
+}
+
+/* Timing Strip (Horizontal) */
+.timing-strip {
+    position: fixed;
+    left: calc(var(--safe-margin) + var(--bug-w)); /* Anchored to right edge of bug logo (not expanded part) */
+    bottom: calc(var(--safe-margin));
+    width: 1400px;
+    height: calc(var(--bug-h) + 21px);
+    z-index: 108; /* Between hashtag and tower */
+    opacity: 0;
+    transform: scaleX(0); /* Start collapsed horizontally */
+    transform-origin: left; /* Expand from left (bug side) to right */
+    transition: all 400ms ease-out;
+}
+
+.timing-strip.show {
+    opacity: 1;
+    transform: scaleX(1); /* Expand to full width */
+}
+
+.strip-panel {
+    background: var(--bg-800);
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.strip-rows {
+    height: 100%;
+    display: flex;
+    flex-direction: row; /* Horizontal layout */
+    overflow: hidden;
+}
+
+/* Strip rider items - horizontal layout */
+.strip-rider {
+    height: 100%;
+    min-width: 93px; /* 1400px / 15 riders ≈ 93px per rider */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 8px 4px;
+    border-right: 1px solid var(--line);
+    background: var(--bg-800);
+    position: relative;
+    overflow: hidden;
+    opacity: 0;
+    transition: all 300ms ease-out;
+    font-size: 12px; /* Smaller text for horizontal layout */
+}
+
+.strip-rider:last-child {
+    border-right: none;
+}
+
+.strip-rider.revealed {
+    opacity: 1;
+}
+
+.strip-rider .position {
+    font-weight: 700;
+    font-size: 14px;
+    background: var(--bg-900);
+    padding: 2px 6px;
+    border-radius: 2px;
+    margin-bottom: 4px;
+    min-width: 20px;
+    text-align: center;
+    margin-left: auto; /* Center the position element */
+    margin-right: auto; /* Center the position element */
+}
+
+.strip-rider .rider-name {
+    display: flex;
+    flex-direction: row; /* Changed from column to row for single line */
+    align-items: center;
+    justify-content: center; /* Center the name horizontally */
+    gap: 3px; /* Reduced from 4px (30% smaller spacing) */
+    margin-bottom: 2px; /* Reduced margin to bring number closer */
+    text-align: center; /* Center justify text */
+}
+
+.strip-rider .first-name {
+    font-weight: 400;
+    font-size: 14px; /* Increased from 12px (another 20% larger) */
+    color: var(--text-med);
+}
+
+.strip-rider .last-name {
+    font-weight: 700;
+    font-size: 17px; /* Increased from 14px (another 20% larger) */
+    text-transform: uppercase;
+}
+
+.strip-rider .rider-number {
+    background: var(--team-default, #5a78c7);
+    color: var(--text-hi);
+    font-weight: 700;
+    font-size: 13px; /* Increased from 11px (slightly larger) */
+    padding: 3px 7px; /* Slightly larger padding */
+    border-radius: 3px;
+    min-width: 26px; /* Slightly larger minimum width */
+    text-align: center;
+}
+
+/* Team Color Reveal Animation for Strip */
+.strip-rider::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: var(--team-color, #5a78c7);
+    z-index: 5;
+    transition: transform 500ms ease-out;
+}
+
+.strip-rider.animate::before {
+    transform: translateX(200%);
+}
+
+.strip-rider > * {
+    position: relative;
+    z-index: 1;
+    opacity: 0;
+    transition: opacity 200ms ease-out 250ms; /* Delay to reveal during swipe */
+}
+
+.strip-rider.revealed > * {
+    opacity: 1;
+}
+
+/* Weather Component */
+.weather {
+    position: fixed;
+    left: calc(var(--safe-margin));
+    bottom: calc(var(--safe-margin) + 32px);  /* Same positioning as timing tower - above hashtag */
+    width: 200px;
+    height: 226px; /* Fixed height as specified */
+    z-index: 105;  /* Same as tower */
+    transform: scaleY(0);
+    transform-origin: bottom;
+    transition: transform 300ms ease-out; /* Only animate transform, not opacity */
+}
+
+.weather.show {
+    transform: scaleY(1);
+}
+
+.weather-panel {
+    background: var(--bg-800);
+    overflow: hidden;
+    height: 100%; /* Ensure it fills the container */
+    width: 100%; /* Ensure it fills the container */
+}
+
+/* Apply opacity animation to individual content elements instead of the background panel */
+.weather-icon-row,
+.weather-conditions-row,
+.weather-details-row {
+    opacity: 0;
+    transition: opacity 300ms ease-out;
+}
+
+.weather.show .weather-icon-row,
+.weather.show .weather-conditions-row,
+.weather.show .weather-details-row {
+    opacity: 1;
+}
+
+.weather-icon-row {
+    background: var(--bg-900);
+    padding: 20px;
+    text-align: center;
+    border-bottom: 1px solid var(--line);
+}
+
+.weather-icon {
+    width: 60px;
+    height: 60px;
+    filter: brightness(0) invert(1); /* Make icons white */
+}
+
+.weather-conditions-row {
+    background: var(--bg-800);
+    padding: 16px 20px;
+    text-align: center;
+    border-bottom: 1px solid var(--line);
+}
+
+.weather-conditions {
+    font-weight: 700;
+    font-size: 16px;
+    text-transform: uppercase;
+    color: var(--text-hi);
+}
+
+.weather-details-row {
+    background: var(--bg-800);
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.weather-temperature {
+    font-weight: 800;
+    font-size: 18px;
+    color: var(--text-hi);
+}
+
+.weather-wind {
+    text-align: right;
+}
+
+.weather-wind span {
+    display: block;
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--text-med);
+}
+
+#windDirection {
+    font-size: 16px;
+    color: var(--text-hi);
+    margin-bottom: 2px;
+}
+
+/* Control Panel - Hidden for broadcast */
+.control-bar {
+    display: none; /* Completely hide the control panel */
+}
+
+.control-bar.show {
+    display: none; /* Keep it hidden even when triggered */
+}
+
+.control-panel {
+    background: var(--bg-900);
+    border: 1px solid var(--line);
+    padding: 16px;
+    border-radius: 6px;
+    min-width: 280px;
+}
+
+.control-group {
+    margin-bottom: 16px;
+}
+
+.control-group:last-child {
+    margin-bottom: 0;
+}
+
+.control-group label {
+    display: block;
+    font-weight: 700;
+    font-size: 12px;
+    text-transform: uppercase;
+    color: var(--text-med);
+    margin-bottom: 8px;
+}
+
+.control-group input[type="number"] {
+    width: 80px;
+    padding: 6px 8px;
+    background: var(--bg-800);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    color: var(--text-hi);
+    font-family: inherit;
+    font-size: 14px;
+}
+
+.flag-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.flag-btn {
+    padding: 6px 12px;
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    background: var(--bg-800);
+    color: var(--text-hi);
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 150ms ease-out;
+}
+
+.flag-btn:hover {
+    background: var(--bg-700);
+}
+
+.flag-btn.active {
+    border-color: currentColor;
+}
+
+.flag-btn.no-light {
+    color: #ffffff;
+}
+
+.flag-btn.green {
+    color: var(--flag-green);
+}
+
+.flag-btn.yellow {
+    color: var(--flag-yellow);
+}
+
+.flag-btn.red {
+    color: var(--flag-red);
+}
+
+.toggle-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.toggle-controls label {
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+    font-weight: 400;
+    text-transform: none;
+    margin: 0;
+    cursor: pointer;
+}
+
+.toggle-controls input[type="checkbox"] {
+    margin-right: 8px;
+    accent-color: var(--flag-green);
+}
+
+/* Remove the responsive adjustment that changes bug position when tower is visible */
+/* Keep bug always in the same position */
+
+/* Hide elements */
+.bug.hide {
+    /* Bug should always be visible - remove hide functionality */
+    opacity: 1;
+    transform: none;
+}
+
+.tower.hide {
+    opacity: 0;
+    transform: translateX(-20px);
+}
+
+/* Smooth transitions for reordering */
+.rider-row.moving {
+    transition: transform 300ms ease-out;
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
