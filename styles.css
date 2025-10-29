@@ -732,6 +732,60 @@ body {
     accent-color: var(--flag-green);
 }
 
+/* Timing Controls */
+.timing-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.timing-btn {
+    padding: 6px 12px;
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    background: var(--bg-800);
+    color: var(--text-hi);
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 150ms ease-out;
+    min-width: 100px;
+}
+
+.timing-btn:hover {
+    background: var(--bg-700);
+}
+
+.timing-status {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    margin-top: 4px;
+    padding: 4px 8px;
+    border-radius: 3px;
+    text-align: center;
+}
+
+.timing-status.on {
+    background: rgba(0, 176, 80, 0.2);
+    color: var(--flag-green);
+    border: 1px solid var(--flag-green);
+}
+
+.timing-status.off {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-med);
+    border: 1px solid var(--line);
+}
+
+.timing-status.error {
+    background: rgba(229, 57, 53, 0.2);
+    color: var(--flag-red);
+    border: 1px solid var(--flag-red);
+}
+
 /* Remove the responsive adjustment that changes bug position when tower is visible */
 /* Keep bug always in the same position */
 
@@ -748,8 +802,32 @@ body {
 }
 
 /* Smooth transitions for reordering */
+.rider-row.moving,
+.strip-rider.moving {
+    transition: transform 400ms cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 100; /* Bring moving elements to front */
+}
+
+/* Position change indicators */
+.rider-row.moving-up,
+.strip-rider.moving-up {
+    box-shadow: 0 0 0 2px var(--flag-green), 0 4px 12px rgba(0, 176, 80, 0.3);
+}
+
+.rider-row.moving-down,
+.strip-rider.moving-down {
+    box-shadow: 0 0 0 2px var(--flag-red), 0 4px 12px rgba(229, 57, 53, 0.3);
+}
+
+/* Enhanced moving animation */
 .rider-row.moving {
-    transition: transform 300ms ease-out;
+    transform-origin: center;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.strip-rider.moving {
+    transform-origin: center;
+    background: rgba(255, 255, 255, 0.05);
 }
 
 /* Accessibility */

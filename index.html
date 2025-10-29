@@ -2,11 +2,16 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Motorsport Broadcast Graphics Overlay</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
+    
 </head>
 <body>
     <div id="overlay" class="overlay">
@@ -108,6 +113,15 @@
                         <label><input type="checkbox" id="showTower"> Show Tower</label>
                         <label><input type="checkbox" id="showStrip"> Show Timing Strip</label>
                         <label><input type="checkbox" id="showWeather"> Show Weather</label>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label>Timing Data:</label>
+                    <div class="timing-controls">
+                        <button id="loadTimingData" class="timing-btn">Load Data (L)</button>
+                        <button id="pauseRefresh" class="timing-btn">Pause (P)</button>
+                        <button id="resumeRefresh" class="timing-btn">Resume (Q)</button>
+                        <span id="timingStatus" class="timing-status">Auto-refresh: OFF</span>
                     </div>
                 </div>
             </div>
