@@ -567,15 +567,15 @@ body {
 
 .weather-icon-row {
     background: var(--bg-900);
-    padding: 20px;
+    padding: 4px;
     text-align: center;
     border-bottom: 1px solid var(--line);
 }
 
 .weather-icon {
-    width: 60px;
-    height: 60px;
-    filter: brightness(0) invert(1); /* Make icons white */
+    width: 90px;
+    height: 90px;
+    /* Removed filter to preserve icon colors */
 }
 
 .weather-conditions-row {
