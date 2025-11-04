@@ -1,5 +1,28 @@
 # GFX controller - TBC Motorsport
 
+## TODO:
+- Short term
+    - [ ] NB - the flag is not flagging
+    - [ ] Flag shows up randomly - persists until H is pressed (esp after finish; S -> idle shows yellow)
+    - [ ] Fix checkered finish flag
+    - [ ] Numbers unreadable
+    - [ ] Up next
+    - [ ] Flag/laps during S mode
+    - [ ] Lower thirds
+    - [ ] Results
+    - [ ] Schedule
+
+- Long term
+    - [ ] Grid lineup
+
+- New / Feature requests
+    - [ ] Schedule of events for the night (CSV-driven import/read)
+    - [ ] Lower thirds (left)
+    - [ ] Lower thirds (right)
+    - [ ] Race leaderboard (live)
+    - [ ] Post-race leaderboard
+    - [ ] "People's Choice" voting graphic (display prompt + placeholder for voting URL)
+
 ## Short term:
 NB - the flag is not flagging
 Flag shows up randomly - persists until h is pressed. Esp after finish, s to idle shows yellow
