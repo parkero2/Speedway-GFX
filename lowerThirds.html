@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Lower Thirds - Speedway Graphics</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="lower-thirds-container">
+        <!-- Left Lower Third -->
+        <div class="lower-third left" id="lowerThirdLeft">
+            <div class="lower-third-panel">
+                <div class="lower-third-accent"></div>
+                <div class="lower-third-content">
+                    <div class="lower-third-name" id="leftName">JACK HARRISON</div>
+                    <div class="lower-third-info">
+                        <div class="lower-third-position" id="leftPosition">P3</div>
+                        <div id="leftTeam">SPRINTCAR RACING TEAM</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Center Lower Third -->
+        <div class="lower-third center" id="lowerThirdCenter">
+            <div class="lower-third-panel">
+                <div class="lower-third-accent"></div>
+                <div class="lower-third-content">
+                    <div class="lower-third-name" id="centerName">SARAH WILLIAMS</div>
+                    <div class="lower-third-info">
+                        <div class="lower-third-position" id="centerPosition">P2</div>
+                        <div id="centerTeam">MIDGET MOTORSPORT</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Lower Third -->
+        <div class="lower-third right" id="lowerThirdRight">
+            <div class="lower-third-panel">
+                <div class="lower-third-accent"></div>
+                <div class="lower-third-content">
+                    <div class="lower-third-name" id="rightName">MIKE PETERS</div>
+                    <div class="lower-third-info">
+                        <div class="lower-third-position" id="rightPosition">P1</div>
+                        <div id="rightTeam">STREET STOCK RACING</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Lower thirds state management
+        const lowerThirds = {
+            left: {
+                element: document.getElementById('lowerThirdLeft'),
+                isVisible: false,
+                isAnimating: false
+            },
+            center: {
+                element: document.getElementById('lowerThirdCenter'),
+                isVisible: false,
+                isAnimating: false
+            },
+            right: {
+                element: document.getElementById('lowerThirdRight'),
+                isVisible: false,
+                isAnimating: false
+            }
+        };
+
+        // API for external control
+        window.lowerThirdsAPI = {
+            // Show a specific lower third
+            show: function(position) {
+                if (!lowerThirds[position] || lowerThirds[position].isAnimating) return;
+                
+                const third = lowerThirds[position];
+                third.isAnimating = true;
+                third.element.classList.add('show');
+                
+                // Trigger wipe animation after show animation starts
+                setTimeout(() => {
+                    third.element.classList.add('wipe');
+                }, 100);
+                
+                setTimeout(() => {
+                    third.isVisible = true;
+                    third.isAnimating = false;
+                }, 800);
+                
+                console.log(`Lower third ${position} shown`);
+            },
+
+            // Hide a specific lower third
+            hide: function(position) {
+                if (!lowerThirds[position] || lowerThirds[position].isAnimating) return;
+                
+                const third = lowerThirds[position];
+                third.isAnimating = true;
+                third.element.classList.remove('wipe');
+                
+                setTimeout(() => {
+                    third.element.classList.remove('show');
+                }, 200);
+                
+                setTimeout(() => {
+                    third.isVisible = false;
+                    third.isAnimating = false;
+                }, 600);
+                
+                console.log(`Lower third ${position} hidden`);
+            },
+
+            // Toggle a specific lower third
+            toggle: function(position) {
+                if (!lowerThirds[position]) return;
+                
+                const third = lowerThirds[position];
+                if (third.isVisible) {
+                    this.hide(position);
+                } else {
+                    this.show(position);
+                }
+            },
+
+            // Hide all lower thirds
+            hideAll: function() {
+                Object.keys(lowerThirds).forEach(position => {
+                    if (lowerThirds[position].isVisible) {
+                        this.hide(position);
+                    }
+                });
+            },
+
+            // Update content for a specific lower third
+            updateContent: function(position, data) {
+                if (!lowerThirds[position]) return;
+
+                const nameEl = document.getElementById(`${position}Name`);
+                const teamEl = document.getElementById(`${position}Team`);
+                const positionEl = document.getElementById(`${position}Position`);
+
+                if (data.name && nameEl) {
+                    nameEl.textContent = data.name.toUpperCase();
+                }
+                if (data.team && teamEl) {
+                    teamEl.textContent = data.team.toUpperCase();
+                }
+                if (data.position && positionEl) {
+                    positionEl.textContent = data.position;
+                }
+
+                console.log(`Lower third ${position} content updated`, data);
+            }
+        };
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            switch(e.key) {
+                case '1':
+                    e.preventDefault();
+                    window.lowerThirdsAPI.toggle('left');
+                    break;
+                case '2':
+                    e.preventDefault();
+                    window.lowerThirdsAPI.toggle('center');
+                    break;
+                case '3':
+                    e.preventDefault();
+                    window.lowerThirdsAPI.toggle('right');
+                    break;
+                case 'Escape':
+                    e.preventDefault();
+                    window.lowerThirdsAPI.hideAll();
+                    break;
+            }
+        });
+
+        // Sample data for testing
+        const sampleData = {
+            left: { name: 'Jack Harrison', team: 'Sprintcar Racing Team', position: 'P3' },
+            center: { name: 'Sarah Williams', team: 'Midget Motorsport', position: 'P2' },
+            right: { name: 'Mike Peters', team: 'Street Stock Racing', position: 'P1' }
+        };
+
+        // Initialize
+        function init() {
+            console.log('Lower Thirds initialized');
+            console.log('Keyboard shortcuts:');
+            console.log('1 = Toggle Left Lower Third');
+            console.log('2 = Toggle Center Lower Third');
+            console.log('3 = Toggle Right Lower Third');
+            console.log('ESC = Hide All Lower Thirds');
+            console.log('API available at window.lowerThirdsAPI');
+        }
+
+        // Load sample data
+        Object.keys(sampleData).forEach(position => {
+            window.lowerThirdsAPI.updateContent(position, sampleData[position]);
+        });
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
