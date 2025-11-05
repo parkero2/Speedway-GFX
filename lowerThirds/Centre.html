@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Lower Third Centre - Motorsport Graphics</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="./spx_interface.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: transparent;
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .lower-third-container {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 600px;
+            height: 120px;
+            z-index: 1000;
+        }
+
+        .lower-third {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transform: translateY(100%);
+            opacity: 0;
+        }
+
+        .lower-third.ready {
+            animation: slideIn 0.8s cubic-bezier(0.23, 1, 0.32, 1) 300ms forwards;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .lower-third.slide-out {
+            animation: slideOut 0.6s cubic-bezier(0.55, 0, 0.1, 1) forwards;
+        }
+
+        @keyframes slideOut {
+            from {
+                transform: translateY(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateY(100%);
+                opacity: 0;
+            }
+        }
+
+        .main-panel {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            border-radius: 12px 12px 0 0;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .accent-bar {
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 100%;
+            height: 6px;
+            background: linear-gradient(90deg, #ff6b35 0%, #f7931e 100%);
+            border-radius: 0 0 0 0;
+        }
+
+        .content-area {
+            padding: 20px 30px 30px 30px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+            text-align: center;
+        }
+
+        .name-line {
+            margin-bottom: 8px;
+        }
+
+        .rider-name {
+            font-size: 28px;
+            font-weight: 800;
+            color: #ffffff;
+            line-height: 1.1;
+            text-transform: uppercase;
+            letter-spacing: -0.02em;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .info-line {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 6px;
+        }
+
+        .position {
+            font-size: 20px;
+            font-weight: 700;
+            color: #ff6b35;
+            min-width: 30px;
+        }
+
+        .team-info {
+            font-size: 16px;
+            font-weight: 600;
+            color: #e0e0e0;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+        }
+
+        /* Glowing effect */
+        .main-panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: inherit;
+            padding: 1px;
+            background: linear-gradient(135deg, rgba(255, 107, 53, 0.3), rgba(247, 147, 30, 0.3));
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask-composite: subtract;
+            pointer-events: none;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .lower-third-container {
+                width: 500px;
+                bottom: 60px;
+            }
+            
+            .rider-name {
+                font-size: 24px;
+            }
+            
+            .content-area {
+                padding: 16px 26px 26px 26px;
+            }
+        }
+    </style>
+    <script>
+        window.SPXGCTemplateDefinition = {
+            description: "Lower Third Centre",
+            playserver: "OVERLAY",
+            playchannel: "1",
+            playlayer: "6",
+            webplayout: "6",
+            out: "manual",
+            dataformat: "json",
+            uicolor: "6",
+        }
+    </script>
+</head>
+
+<body>
+    <div class="lower-third-container">
+        <div class="lower-third" id="lowerThird">
+            <div class="main-panel">
+                <div class="accent-bar"></div>
+                
+                <div class="content-area">
+                    <div class="name-line">
+                        <div class="rider-name" id="riderName">JOHN SMITH</div>
+                    </div>
+                    
+                    <div class="info-line">
+                        <div class="team-info" id="teamInfo">HONDA RACING TEAM</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // API Functions for external control
+        window.lowerThirdAPI = {
+            // Update rider information
+            updateRider: function(data) {
+                if (data.name) document.getElementById('riderName').textContent = data.name.toUpperCase();
+                if (data.team) document.getElementById('teamInfo').textContent = data.team.toUpperCase();
+            },
+
+            // Show the lower third
+            show: function() {
+                const lowerThird = document.getElementById('lowerThird');
+                lowerThird.classList.remove('slide-out');
+                lowerThird.classList.add('ready');
+                lowerThird.style.display = 'block';
+                // Trigger reflow to ensure animation plays
+                lowerThird.offsetHeight;
+            },
+
+            // Trigger animation in
+            runAnimationIN: function() {
+                this.show();
+            },
+
+            // Hide the lower third
+            hide: function() {
+                const lowerThird = document.getElementById('lowerThird');
+                lowerThird.classList.add('slide-out');
+                setTimeout(() => {
+                    lowerThird.style.display = 'none';
+                }, 600);
+            },
+
+            // Set flag state
+            setFlag: function(state) {
+                // Flag functionality removed with logo
+            },
+
+            // Update logo
+            setLogo: function(src) {
+                // Logo functionality removed
+            },
+
+        };
+
+        function runAnimationOUT() {
+            window.lowerThirdAPI.hide();
+        }
+
+        // Keyboard shortcuts (for testing)
+        document.addEventListener('keydown', function(e) {
+            switch(e.key.toLowerCase()) {
+                case 's':
+                    window.lowerThirdAPI.show();
+                    break;
+                case 'h':
+                    window.lowerThirdAPI.hide();
+                    break;
+                case '1':
+                    window.lowerThirdAPI.setFlag('green');
+                    break;
+                case '2':
+                    window.lowerThirdAPI.setFlag('yellow');
+                    break;
+                case '3':
+                    window.lowerThirdAPI.setFlag('red');
+                    break;
+                case '4':
+                    window.lowerThirdAPI.setFlag('no-light');
+                    break;
+            }
+        });
+
+        // Sample data update for testing
+        function updateSampleData() {
+            window.lowerThirdAPI.updateRider({
+                name: 'Alex Thompson',
+                team: 'Ducati Corse'
+            });
+            
+            // Mark as ready and trigger animation after data is loaded
+            setTimeout(() => {
+                document.getElementById('lowerThird').classList.add('ready');
+            }, 100);
+        }
+
+        // Initialize with sample data
+        setTimeout(updateSampleData, 500);
+
+        // Auto-show for demo (remove in production) - now waits for data to load
+        // setTimeout(() => window.lowerThirdAPI.show(), 500);
+
+        console.log('Lower Third Centre loaded. Use keyboard shortcuts: S=Show, H=Hide, 1-4=Flag states');
+        console.log('API available at window.lowerThirdAPI');
+    </script>
+</body>
+
+</html>
