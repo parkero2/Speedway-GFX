@@ -158,6 +158,32 @@ body {
 
 }
 
+.bug-slug.finish {
+    background: 
+        repeating-linear-gradient(
+            0deg,
+            #000000 0px,
+            #000000 12px,
+            #333333 12px,
+            #333333 24px
+        ),
+        repeating-linear-gradient(
+            90deg,
+            #000000 0px,
+            #000000 12px,
+            #333333 12px,
+            #333333 24px
+        );
+    background-blend-mode: difference;
+    /* Finish flag stays up - no animation */
+}
+
+.bug-slug.finish .flag-notification {
+    color: #ffffff;  /* White text on dark checkered background */
+    font-weight: 800;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
+
 @keyframes redFlagFlash {
     0%, 100% { 
         opacity: 1;
@@ -714,6 +740,18 @@ body {
 
 .flag-btn.red {
     color: var(--flag-red);
+}
+
+.flag-btn.finish {
+    background: repeating-linear-gradient(
+        45deg,
+        #000000 0px,
+        #000000 8px,
+        #ffffff 8px,
+        #ffffff 16px
+    );
+    color: #000000;
+    font-weight: 800;
 }
 
 .toggle-controls {

@@ -31,7 +31,7 @@
          * - toggleTower()                         // show/hide timing tower
          * - toggleStrip()                         // show/hide timing strip
          * - toggleWeather()                       // show/hide weather panel
-         * - setFlag('no-light'|'green'|'yellow'|'red') // set flag state
+         * - setFlag('no-light'|'green'|'yellow'|'red'|'finish') // set flag state
          * - showFlagTemporarily(durationMs = 2000) // show current flag then hide
          * - setLap(currentLap, totalLaps)         // update lap display & progress bar
          * - setProgress(percent)                  // set header progress bar (0-100)
@@ -53,6 +53,7 @@
          *
          * Example usages:
          *   setFlag('yellow');
+         *   setFlag('finish');  // Shows chequered flag and stays up
          *   setLap(5, 20);
          *   startTimingRefresh(1000);
          */
@@ -151,6 +152,7 @@
                         <button id="flagGreen" class="flag-btn green">Green</button>
                         <button id="flagYellow" class="flag-btn yellow">Yellow</button>
                         <button id="flagRed" class="flag-btn red">Red</button>
+                        <button id="flagFinish" class="flag-btn finish">Finish</button>
                     </div>
                 </div>
                 <div class="control-group">

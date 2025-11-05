@@ -62,6 +62,7 @@ const elements = {
     flagGreen: document.getElementById('flagGreen'),
     flagYellow: document.getElementById('flagYellow'),
     flagRed: document.getElementById('flagRed'),
+    flagFinish: document.getElementById('flagFinish'),
     expandSlug: document.getElementById('expandSlug'),
     showTower: document.getElementById('showTower'),
     showStrip: document.getElementById('showStrip'),
@@ -857,6 +858,7 @@ function setupEventListeners() {
     elements.flagGreen.addEventListener('click', () => setFlag('green'));
     elements.flagYellow.addEventListener('click', () => setFlag('yellow'));
     elements.flagRed.addEventListener('click', () => setFlag('red'));
+    elements.flagFinish.addEventListener('click', () => setFlag('finish'));
     
     // Toggle controls
     elements.expandSlug.addEventListener('change', toggleBugSlug);
@@ -919,6 +921,9 @@ function handleKeyPress(event) {
             break;
         case 'r':
             setFlag('red');
+            break;
+        case 'c':
+            setFlag('finish');
             break;
         case 'f':
             // Toggle flag view - show current flag state then hide after 2 seconds
@@ -1083,7 +1088,7 @@ function updateUI() {
     
     // Apply visibility states - bug is always visible, hashtag is always visible
     // Flag notifications take priority over manual expansion
-    const flagRequiresExpansion = ['green', 'yellow', 'red'].includes(appState.event.flag);
+    const flagRequiresExpansion = ['green', 'yellow', 'red', 'finish'].includes(appState.event.flag);
     if (!flagRequiresExpansion) {
         // Only apply manual expansion if no flag notification is active
         elements.bug.classList.toggle('expanded', appState.ui.expandSlug);
@@ -1384,7 +1389,8 @@ function setLap(current, total) {
 function setFlag(color) {
     if (['no-light', 'green', 'yellow', 'red', 'finish'].includes(color)) {
         appState.event.flag = color;
-        // Don't automatically show flag notification - only show when H is pressed
+        // Show flag notification when flag is set
+        handleFlagNotification(color);
         updateUI();
         saveStateToStorage();
     }
@@ -1448,7 +1454,7 @@ function handleFlagNotification(flag) {
         case 'finish':
             // Finish flag: expand and show chequered flag
             elements.bugSlug.style.display = 'block'; // Ensure flag slug is visible
-            elements.flagNotification.textContent = 'CHEQUERED FLAG';
+            elements.flagNotification.textContent = 'FINISHED';
             elements.bugSlug.classList.add('finish');
             elements.bug.classList.add('expanded');
             elements.bugPanel.classList.add('flag-active');
