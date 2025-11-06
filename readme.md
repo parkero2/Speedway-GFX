@@ -8,9 +8,9 @@
     - [ ] Numbers unreadable
     - [ ] Up next
     - [ ] Flag/laps during S mode
-    - [ ] Lower thirds
+    - [x] Lower thirds
     - [ ] Results
-    - [ ] Schedule
+    - [x] Schedule
 
 - Long term
     - [ ] Grid lineup
