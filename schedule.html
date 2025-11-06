@@ -27,6 +27,9 @@
                     <div class="schedule-title">
                         <span id="eventName">SPEEDWAY CHAMPIONSHIPS</span>
                     </div>
+                    <div class="schedule-sponsors-logo" id="scheduleSponsorsLogo">
+                        <img id="sponsorsLogoImg" src="" alt="Sponsors" class="sponsors-logo">
+                    </div>
                     <div class="schedule-time">
                         <span id="eventTime">19:00</span>
                     </div>
@@ -97,12 +100,12 @@
 
         .schedule-header {
             background: var(--bg-700);
-            padding: 24px 32px;
+            padding: 16px 20px; /* Reduced from 24px 32px */
             border-bottom: 1px solid var(--line);
             display: grid;
-            grid-template-columns: 200px 1fr 200px;
+            grid-template-columns: 200px 1fr auto 200px;
             align-items: center;
-            gap: 24px;
+            gap: 16px; /* Reduced from 24px */
         }
 
         .schedule-logo {
@@ -132,9 +135,27 @@
             font-variant-numeric: tabular-nums;
         }
 
+        .schedule-sponsors-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0; /* Remove any default margins */
+            padding: 0; /* Remove any default padding */
+        }
+
+        .sponsors-logo {
+            max-height: 82px; /* 70% larger than 48px (48 * 1.7 ≈ 82) */
+            max-width: 255px; /* 70% larger than 150px (150 * 1.7 = 255) */
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            margin: 0; /* Remove any default margins */
+            padding: 0; /* Remove any default padding */
+        }
+
         .schedule-columns {
             display: grid;
-            grid-template-columns: 0.6fr 1fr 2fr 2fr 1fr;
+            grid-template-columns: 0.6fr 1fr 4fr 1fr 1fr;
             background: var(--bg-800);
             border-bottom: 2px solid var(--line);
         }
@@ -168,7 +189,7 @@
 
         .schedule-row {
             display: grid;
-            grid-template-columns: 0.6fr 1fr 2fr 2fr 1fr;
+            grid-template-columns: 0.6fr 1fr 4fr 1fr 1fr;
             background: var(--bg-800);
             border-bottom: 1px solid var(--line);
             transition: all 150ms ease-out;
@@ -446,6 +467,24 @@
                     }
                     if (eventInfo && eventInfo.eventName) {
                         document.getElementById('scheduleHashtag').textContent = `#${eventInfo.eventName.replace(/\s+/g, '')}`;
+                    }
+                    if (eventInfo && eventInfo.sponsorsLogo) {
+                        const sponsorsLogoImg = document.getElementById('sponsorsLogoImg');
+                        const sponsorsLogoContainer = document.getElementById('scheduleSponsorsLogo');
+                        if (sponsorsLogoImg && eventInfo.sponsorsLogo.trim()) {
+                            sponsorsLogoImg.src = eventInfo.sponsorsLogo.trim();
+                            sponsorsLogoContainer.style.display = 'flex';
+                            console.log('Sponsors logo loaded:', eventInfo.sponsorsLogo.trim());
+                        } else {
+                            sponsorsLogoContainer.style.display = 'none';
+                            console.log('No sponsors logo found or empty path');
+                        }
+                    } else {
+                        // Hide sponsors logo if no data
+                        const sponsorsLogoContainer = document.getElementById('scheduleSponsorsLogo');
+                        if (sponsorsLogoContainer) {
+                            sponsorsLogoContainer.style.display = 'none';
+                        }
                     }
                     
                     console.log('=== EXCEL LOAD SUCCESS ===');

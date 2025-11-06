@@ -152,10 +152,12 @@ class SpeedwayDataReader {
                 this.data.eventInfo.venueName = row[0];
                 this.data.eventInfo.eventName = row[1];
                 this.data.eventInfo.hashtag = row[2] || ''; // Add hashtag from third column
+                this.data.eventInfo.sponsorsLogo = row[3] || ''; // Add sponsors logo from fourth column (D)
             } else if (currentSection === 'event' && row[0] && row[1] && firstCell !== 'Venue Name') {
                 this.data.eventInfo.venueName = row[0];
                 this.data.eventInfo.eventName = row[1];
                 this.data.eventInfo.hashtag = row[2] || ''; // Add hashtag from third column
+                this.data.eventInfo.sponsorsLogo = row[3] || ''; // Add sponsors logo from fourth column (D)
             }
             
             // Parse lower third templates
@@ -261,7 +263,8 @@ class SpeedwayDataReader {
             eventInfo: {
                 venueName: 'ERR - Excel Not Loaded',
                 eventName: 'ERR - Excel Not Loaded',
-                hashtag: 'ERR - Excel Not Loaded'
+                hashtag: 'ERR - Excel Not Loaded',
+                sponsorsLogo: ''
             },
             lowerThirds: {
                 left: { title: 'ERR - Excel Not Loaded', subtitle: 'ERR - Excel Not Loaded' },
