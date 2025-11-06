@@ -12,7 +12,67 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="./spx_interface.js"></script>
     <script src="speedway-data-reader.js"></script>
+    <script>
+        window.SPXGCTemplateDefinition = {
+            description: "Lower Thirds Graphics",
+            playserver: "OVERLAY",
+            playchannel: "1",
+            playlayer: "10",
+            webplayout: "10",
+            out: "manual",
+            dataformat: "json",
+            uicolor: "4",
+            DataFields: [
+                {
+                    field: "f0",
+                    ftype: "dropdown",
+                    title:"Position",
+                    value: "left",
+                    items: [
+                        {value: "left", text: "Left Lower Third"},
+                        {value: "center", text: "Center Lower Third"},
+                        {value: "right", text: "Right Lower Third"}
+                    ],
+                },
+                {
+                    field: "f1",
+                    ftype: "textfield",
+                    title: "Name",
+                    value: "JACK HARRISON"
+                },
+                {
+                    field: "f2",
+                    ftype: "textfield",
+                    title: "Team/Info",
+                    value: "SPRINTCAR RACING TEAM"
+                }
+            ]
+        }
+        /**
+         * SPX COMPANION FUNCTION CALLS
+         * 
+         * Available companion functions (call these from SPX or console):
+         * - window.lowerThirdsAPI.show('left'|'center'|'right')     // Show specific lower third
+         * - window.lowerThirdsAPI.hide('left'|'center'|'right')     // Hide specific lower third
+         * - window.lowerThirdsAPI.toggle('left'|'center'|'right')   // Toggle specific lower third
+         * - window.lowerThirdsAPI.hideAll()                         // Hide all lower thirds
+         * - window.lowerThirdsAPI.updateContent(position, data)     // Update content for position
+         * - window.loadExcelData()                                  // Manually reload Excel data
+         *
+         * Keyboard shortcuts:
+         * - 1 = Toggle Left Lower Third
+         * - 2 = Toggle Center Lower Third  
+         * - 3 = Toggle Right Lower Third
+         * - ESC = Hide All Lower Thirds
+         *
+         * Example usages:
+         *   window.lowerThirdsAPI.show('left');
+         *   window.lowerThirdsAPI.updateContent('center', {name: 'JOHN DOE', team: 'RACING TEAM'});
+         *   window.lowerThirdsAPI.hideAll();
+         */
+    </script>
 </head>
 <body>
     <div class="lower-thirds-container">
@@ -54,6 +114,9 @@
                 </div>
             </div>
         </div>
+        <span id="f0" style="display:none;">left</span>
+        <span id="f1" style="display:none;">JACK HARRISON</span>
+        <span id="f2" style="display:none;">SPRINTCAR RACING TEAM</span>
     </div>
 
     <script>
@@ -75,6 +138,21 @@
                 isAnimating: false
             }
         };
+
+        // Animate out, called by SPX
+        function runAnimationOUT() {
+            Object.keys(lowerThirds).forEach(position => {
+                const third = lowerThirds[position];
+                if (third.isVisible) {
+                    third.isAnimating = true;
+                    third.element.classList.remove('show');
+                    setTimeout(() => {
+                        third.isVisible = false;
+                        third.isAnimating = false;
+                    }, 300);
+                }
+            });
+        }
 
         // API for external control
         window.lowerThirdsAPI = {
@@ -192,8 +270,17 @@
         // Excel data integration
         const dataReader = new SpeedwayDataReader();
         
+        // Configuration flags
+        const csvMode = false; // Set to true to use CSV data instead of Excel
+        
         // Function to load Excel data and update lower thirds
         async function loadExcelData() {
+            // Skip Excel/CSV loading if csvMode is disabled
+            if (!csvMode) {
+                console.log('CSV mode disabled, skipping data load');
+                return;
+            }
+            
             try {
                 console.log('=== LOADING FRESH EXCEL DATA FOR LOWER THIRDS ===');
                 const data = await dataReader.loadExcelData();
@@ -263,13 +350,97 @@
             
             // Load Excel data
             loadExcelData();
+            
+            // Set up observers for f1 and f2 changes if CSV mode is disabled
+            if (!csvMode) {
+                setupSPXDataObservers();
+            }
+        }
+        
+        // Set up observers to watch for changes in SPX data fields
+        function setupSPXDataObservers() {
+            const nameElement = document.getElementById('f1');
+            const teamElement = document.getElementById('f2');
+            const positionElement = document.getElementById('f0');
+            
+            if (nameElement || teamElement) {
+                const observer = new MutationObserver(function(mutations) {
+                    mutations.forEach(function(mutation) {
+                        if (mutation.type === 'childList' || mutation.type === 'characterData') {
+                            // Get current values
+                            const position = positionElement ? positionElement.textContent.trim() : 'left';
+                            const name = nameElement ? nameElement.textContent.trim() : '';
+                            const team = teamElement ? teamElement.textContent.trim() : '';
+                            
+                            // Update content if we have valid data
+                            if (name && team && lowerThirds[position]) {
+                                window.lowerThirdsAPI.updateContent(position, {
+                                    name: name,
+                                    team: team
+                                });
+                                console.log(`SPX data changed - Updated ${position}: ${name} - ${team}`);
+                            }
+                        }
+                    });
+                });
+                
+                // Observe both name and team elements for changes
+                if (nameElement) {
+                    observer.observe(nameElement, { 
+                        childList: true, 
+                        subtree: true, 
+                        characterData: true 
+                    });
+                }
+                if (teamElement) {
+                    observer.observe(teamElement, { 
+                        childList: true, 
+                        subtree: true, 
+                        characterData: true 
+                    });
+                }
+                
+                console.log('SPX data observers set up for f1 and f2');
+            }
         }
         
         // Expose Excel reload function for manual refresh
         window.loadExcelData = loadExcelData;
 
         // Initialize when page loads
-        document.addEventListener('DOMContentLoaded', init);
+        document.addEventListener('DOMContentLoaded', function() {
+            init();
+            
+            // Add a delay to allow SPX to populate f0/f1/f2 fields (~100ms)
+            setTimeout(() => {
+                // Get SPX data fields
+                const positionElement = document.getElementById('f0');
+                const nameElement = document.getElementById('f1');
+                const teamElement = document.getElementById('f2');
+                
+                const position = positionElement ? positionElement.textContent.trim() : 'left';
+                const name = nameElement ? nameElement.textContent.trim() : '';
+                const team = teamElement ? teamElement.textContent.trim() : '';
+                
+                // Update content with SPX data if CSV mode is disabled
+                if (!csvMode && name && team) {
+                    window.lowerThirdsAPI.updateContent(position, {
+                        name: name,
+                        team: team
+                    });
+                    console.log(`Updated ${position} with SPX data: ${name} - ${team}`);
+                }
+                
+                // Render the lower third based on SPX data field f0
+                if (position && lowerThirds[position]) {
+                    console.log(`Rendering ${position} lower third on load`);
+                    window.lowerThirdsAPI.show(position);
+                } else {
+                    console.log('No valid position found, defaulting to left');
+                    window.lowerThirdsAPI.show('left');
+                }
+            }, 150); // 150ms delay to ensure SPX has populated the fields
+        });
     </script>
 </body>
 </html>
