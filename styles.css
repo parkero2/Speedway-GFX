@@ -33,7 +33,7 @@
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     font-variant-numeric: tabular-nums;
-    background: #f0f0f0; /* Light grey browser background */
+    /*background: #f0f0f0; /* Light grey browser background */
     color: var(--text-hi);
     font-size: 14px;
     line-height: 1.2;

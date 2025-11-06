@@ -14,6 +14,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="speedway-data-reader.js"></script>
+    <script src="./spx_interface.js"></script>
     <script>
         window.SPXGCTemplateDefinition = {
             description: "Bug Graphic",
@@ -194,6 +195,38 @@
     </div>
 
     <script>
+        function runAnimationOUT() {
+            // Hide all visible components by setting opacity to 0 (for testing)
+            const bug = document.getElementById('bug');
+            const tower = document.getElementById('tower');
+            const timingStrip = document.getElementById('timingStrip');
+            const weather = document.getElementById('weather');
+            const bugSlug = document.getElementById('bugSlug');
+            
+            // Set opacity to 0 for all components
+            if (bug) {
+                bug.style.opacity = '0';
+            }
+            
+            if (tower) {
+                tower.style.opacity = '0';
+            }
+            
+            if (timingStrip) {
+                timingStrip.style.opacity = '0';
+            }
+            
+            if (weather) {
+                weather.style.opacity = '0';
+            }
+            
+            if (bugSlug) {
+                bugSlug.style.opacity = '0';
+            }
+            
+            console.log('Bug graphic components opacity set to 0');
+        }
+
         // Excel data integration for hashtag
         const dataReader = new SpeedwayDataReader();
         
@@ -228,6 +261,7 @@
         // Load hashtag when page loads
         document.addEventListener('DOMContentLoaded', function() {
             // Small delay to ensure app.js loads first
+            hideStrip();
             setTimeout(loadExcelHashtag, 100);
         });
         
@@ -235,7 +269,7 @@
         window.loadExcelHashtag = loadExcelHashtag;
     </script>
 
-    <script src="app.js"></script>
+    <script src="./app.js"></script>
 </body>
 
 </html>

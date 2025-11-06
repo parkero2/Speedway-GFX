@@ -12,7 +12,41 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="./spx_interface.js"></script>
     <script src="speedway-data-reader.js"></script>
+    <script>
+        window.SPXGCTemplateDefinition = {
+            description: "Event Schedule",
+            playserver: "OVERLAY",
+            playchannel: "1",
+            playlayer: "11",
+            webplayout: "11",
+            out: "manual",
+            dataformat: "json",
+            uicolor: "5",
+        }
+        /**
+         * SPX COMPANION FUNCTION CALLS
+         * 
+         * Available companion functions (call these from SPX or console):
+         * - toggleSchedule()                       // show/hide schedule
+         * - showSchedule()                         // show schedule with animation
+         * - hideSchedule()                         // hide schedule
+         * - loadScheduleFromExcel()                // reload schedule data from Excel
+         * - toggleScroll()                         // scroll between top/bottom if needed
+         *
+         * Keyboard shortcuts:
+         * - SPACE = Toggle Schedule
+         * - ESC = Hide Schedule  
+         * - R = Reload Excel Data
+         * - S = Toggle Scroll (if more than 15 rows)
+         *
+         * Example usages:
+         *   showSchedule();
+         *   hideSchedule();
+         *   loadScheduleFromExcel();
+         */
+    </script>
 </head>
 <body>
     <div id="overlay" class="overlay">
@@ -366,6 +400,15 @@
     </style>
 
     <script>
+        // Animate out, called by SPX
+        function runAnimationOUT() {
+            const schedule = document.getElementById('schedule');
+            if (schedule) {
+                schedule.style.opacity = '0';
+            }
+            console.log('Schedule animated out');
+        }
+
         // Application state - sourced like index.html
         let scheduleState = {
             isVisible: false,
@@ -388,7 +431,7 @@
         // Load event data from sample-data.json
         async function loadEventData() {
             try {
-                const response = await fetch('assets/sample-data.json');
+                const response = await fetch('./assets/sample-data.json');
                 const data = await response.json();
                 
                 eventData.venue = data.event.venue;
@@ -733,6 +776,11 @@
         document.addEventListener('DOMContentLoaded', function() {
             // Initialize the app
             init();
+            
+            // Show schedule automatically on page load with a delay
+            setTimeout(() => {
+                showSchedule();
+            }, 300);
             
             // Add keyboard shortcut for scrolling (S key) - broadcast friendly
             document.addEventListener('keydown', function(event) {
