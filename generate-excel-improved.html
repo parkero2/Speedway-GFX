@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Excel Generator - Speedway Data (Multi-Sheet)</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+    <h1>Speedway-GFX Excel Generator (Improved Multi-Sheet)</h1>
+    <button onclick="generateExcel()">Generate speedway-data.xlsx (Multi-Sheet)</button>
+
+    <h2>Excel Structure:</h2>
+    <ul>
+        <li><strong>Event Info</strong> - Venue, event name, lower thirds</li>
+        <li><strong>Schedule</strong> - Complete race schedule with feature race flags</li>
+    </ul>
+
+    <script>
+        function generateExcel() {
+            // Create workbook
+            const wb = XLSX.utils.book_new();
+            
+            // ========================================
+            // SHEET 1: EVENT INFO & LOWER THIRDS
+            // ========================================
+            const eventData = [
+                ['Event Information', '', '', '', '', ''],
+                ['Venue Name', 'Event Name', '', '', '', ''],
+                ['Sepang International Circuit', 'Malaysian Grand Prix', '', '', '', ''],
+                ['', '', '', '', '', ''],
+                ['Lower Third Templates', '', '', '', '', ''],
+                ['Template', 'Title', 'Subtitle', '', '', ''],
+                ['Lower Third Left', 'RIDER SPOTLIGHT', 'Current Championship Leader', '', '', ''],
+                ['Lower Third Centre', 'RACE UPDATE', 'Lap 15 of 20', '', '', ''],
+                ['Lower Third Right', 'FASTEST LAP', 'Sector 2 - 1:24.567', '', '', '']
+            ];
+            
+            const eventSheet = XLSX.utils.aoa_to_sheet(eventData);
+            XLSX.utils.book_append_sheet(wb, eventSheet, 'Event Info');
+            
+            // ========================================
+            // SHEET 2: SCHEDULE (DEDICATED SHEET)
+            // ========================================
+            const scheduleData = [
+                ['Time', 'Event', 'Description', 'Duration', 'Status', 'Notes', 'Feature Race'],
+                ['17:00', 'Ministocks', 'Heat 1', '10 laps', 'Scheduled', '', 'false'],
+                ['17:15', 'Midgets', 'Heat 1', '12 laps', 'Scheduled', '', 'false'],
+                ['17:30', 'Street Stocks', 'Heat 1', '15 laps', 'Scheduled', '', 'false'],
+                ['17:45', 'Sprintcars', 'Heat 1', '15 laps', 'Scheduled', '', 'false'],
+                ['18:00', 'Super Saloons', 'Heat 1', '15 laps', 'Scheduled', '', 'false'],
+                ['18:20', 'Ministocks', 'Heat 2', '10 laps', 'Scheduled', '', 'false'],
+                ['18:35', 'Midgets', 'Heat 2', '12 laps', 'Scheduled', '', 'false'],
+                ['18:50', 'Street Stocks', 'Heat 2', '15 laps', 'Scheduled', '', 'false'],
+                ['19:05', 'Sprintcars', 'Heat 2', '15 laps', 'Scheduled', '', 'false'],
+                ['19:25', 'Super Saloons', 'Heat 2', '15 laps', 'Scheduled', '', 'false'],
+                ['19:45', 'Ministocks', 'Feature Race', '20 laps', 'Scheduled', 'Championship points', 'true'],
+                ['20:05', 'Midgets', 'Feature Race', '25 laps', 'Scheduled', 'Championship points', 'true'],
+                ['20:30', 'Street Stocks', 'Feature Race', '25 laps', 'Scheduled', 'Championship points', 'true'],
+                ['20:55', 'Sprintcars', 'Feature Race', '25 laps', 'Scheduled', 'Championship points', 'true'],
+                ['21:25', 'Super Saloons', 'Feature Race', '25 laps', 'Scheduled', 'Championship points', 'true']
+            ];
+            
+            const scheduleSheet = XLSX.utils.aoa_to_sheet(scheduleData);
+            XLSX.utils.book_append_sheet(wb, scheduleSheet, 'Schedule');
+            
+            // Generate Excel file and download
+            XLSX.writeFile(wb, 'speedway-data.xlsx');
+            
+            console.log('Multi-sheet Excel file generated: speedway-data.xlsx');
+            alert('Multi-sheet Excel file generated and downloaded!\n\nSheets:\n- Event Info: Venue, event name, lower thirds\n- Schedule: Complete race schedule with feature race column');
+        }
+    </script>
+
+    <h2>How to Use:</h2>
+    <ol>
+        <li>Click the button above to generate the Excel file</li>
+        <li>Open the downloaded file in Excel</li>
+        <li>Edit the <strong>Schedule</strong> sheet with your race schedule</li>
+        <li>Set <strong>Feature Race</strong> column to "true" for feature races, "false" for heats</li>
+        <li>Edit the <strong>Event Info</strong> sheet for venue and lower third templates</li>
+        <li>Save the file and refresh your schedule.html page</li>
+    </ol>
+
+    <h2>Schedule Sheet Structure:</h2>
+    <table border="1" style="border-collapse: collapse; margin: 20px 0;">
+        <tr style="background: #f0f0f0;">
+            <th>Time</th><th>Event</th><th>Description</th><th>Duration</th><th>Status</th><th>Notes</th><th>Feature Race</th>
+        </tr>
+        <tr>
+            <td>17:00</td><td>Ministocks</td><td>Heat 1</td><td>10 laps</td><td>Scheduled</td><td></td><td>false</td>
+        </tr>
+        <tr>
+            <td>19:45</td><td>Ministocks</td><td>Feature Race</td><td>20 laps</td><td>Scheduled</td><td>Championship</td><td><strong>true</strong></td>
+        </tr>
+    </table>
+</body>
+</html>

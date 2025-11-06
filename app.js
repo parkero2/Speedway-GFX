@@ -402,16 +402,10 @@ function ridersAreEqual(riders1, riders2) {
     return true;
 }
 
-// Generate team colors for positions (cycling through predefined colors)
+// Generate team colors for positions (all white for now since we don't have team color data)
 function getTeamColor(position) {
-    const colors = [
-        '#ff0000', '#0066cc', '#00aa00', '#ff6600', '#9900cc',
-        '#cccc00', '#ff0066', '#0099cc', '#cc6600', '#6600cc',
-        '#00cc66', '#cc0066', '#6699cc', '#cc9900', '#9966cc',
-        '#66cc00', '#cc3366', '#3366cc', '#cc6633', '#6633cc'
-    ];
-    
-    return colors[(position - 1) % colors.length];
+    // Return white for all riders since we don't have team color information
+    return '#ffffff';
 }
 
 // Auto-refresh timing data at intervals
@@ -815,28 +809,28 @@ function updateWeatherStatus(message = null) {
 // Generate fallback rider data
 function generateFallbackRiders() {
     const riders = [
-        { pos: 1, first: "E", last: "ERR", num: 1, teamColor: "#ff0000" },
-        { pos: 2, first: "E", last: "ERR", num: 2, teamColor: "#ff0000" },
-        { pos: 3, first: "E", last: "ERR", num: 3, teamColor: "#ff0000" },
-        { pos: 4, first: "E", last: "ERR", num: 4, teamColor: "#ff0000" },
-        { pos: 5, first: "E", last: "ERR", num: 5, teamColor: "#ff0000" },
-        { pos: 6, first: "E", last: "ERR", num: 6, teamColor: "#ff0000" },
-        { pos: 7, first: "E", last: "ERR", num: 7, teamColor: "#ff0000" },
-        { pos: 8, first: "E", last: "ERR", num: 8, teamColor: "#ff0000" },
-        { pos: 9, first: "E", last: "ERR", num: 9, teamColor: "#ff0000" },
-        { pos: 10, first: "E", last: "ERR", num: 10, teamColor: "#ff0000" },
-        { pos: 11, first: "E", last: "ERR", num: 11, teamColor: "#ff0000" },
-        { pos: 12, first: "E", last: "ERR", num: 12, teamColor: "#ff0000" },
-        { pos: 13, first: "E", last: "ERR", num: 13, teamColor: "#ff0000" },
-        { pos: 14, first: "E", last: "ERR", num: 14, teamColor: "#ff0000" },
-        { pos: 15, first: "E", last: "ERR", num: 15, teamColor: "#ff0000" },
-        { pos: 16, first: "E", last: "ERR", num: 16, teamColor: "#ff0000" },
-        { pos: 17, first: "E", last: "ERR", num: 17, teamColor: "#ff0000" },
-        { pos: 18, first: "E", last: "ERR", num: 18, teamColor: "#ff0000" },
-        { pos: 19, first: "E", last: "ERR", num: 19, teamColor: "#ff0000" },
-        { pos: 20, first: "E", last: "ERR", num: 20, teamColor: "#ff0000" },
-        { pos: 21, first: "E", last: "ERR", num: 21, teamColor: "#ff0000" },
-        { pos: 22, first: "E", last: "ERR", num: 22, teamColor: "#ff0000" }
+        { pos: 1, first: "E", last: "ERR", num: 1, teamColor: "#ffffff" },
+        { pos: 2, first: "E", last: "ERR", num: 2, teamColor: "#ffffff" },
+        { pos: 3, first: "E", last: "ERR", num: 3, teamColor: "#ffffff" },
+        { pos: 4, first: "E", last: "ERR", num: 4, teamColor: "#ffffff" },
+        { pos: 5, first: "E", last: "ERR", num: 5, teamColor: "#ffffff" },
+        { pos: 6, first: "E", last: "ERR", num: 6, teamColor: "#ffffff" },
+        { pos: 7, first: "E", last: "ERR", num: 7, teamColor: "#ffffff" },
+        { pos: 8, first: "E", last: "ERR", num: 8, teamColor: "#ffffff" },
+        { pos: 9, first: "E", last: "ERR", num: 9, teamColor: "#ffffff" },
+        { pos: 10, first: "E", last: "ERR", num: 10, teamColor: "#ffffff" },
+        { pos: 11, first: "E", last: "ERR", num: 11, teamColor: "#ffffff" },
+        { pos: 12, first: "E", last: "ERR", num: 12, teamColor: "#ffffff" },
+        { pos: 13, first: "E", last: "ERR", num: 13, teamColor: "#ffffff" },
+        { pos: 14, first: "E", last: "ERR", num: 14, teamColor: "#ffffff" },
+        { pos: 15, first: "E", last: "ERR", num: 15, teamColor: "#ffffff" },
+        { pos: 16, first: "E", last: "ERR", num: 16, teamColor: "#ffffff" },
+        { pos: 17, first: "E", last: "ERR", num: 17, teamColor: "#ffffff" },
+        { pos: 18, first: "E", last: "ERR", num: 18, teamColor: "#ffffff" },
+        { pos: 19, first: "E", last: "ERR", num: 19, teamColor: "#ffffff" },
+        { pos: 20, first: "E", last: "ERR", num: 20, teamColor: "#ffffff" },
+        { pos: 21, first: "E", last: "ERR", num: 21, teamColor: "#ffffff" },
+        { pos: 22, first: "E", last: "ERR", num: 22, teamColor: "#ffffff" }
     ];
     return riders;
 }

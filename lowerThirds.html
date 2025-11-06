@@ -11,6 +11,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="speedway-data-reader.js"></script>
 </head>
 <body>
     <div class="lower-thirds-container">
@@ -21,7 +23,6 @@
                 <div class="lower-third-content">
                     <div class="lower-third-name" id="leftName">JACK HARRISON</div>
                     <div class="lower-third-info">
-                        <div class="lower-third-position" id="leftPosition">P3</div>
                         <div id="leftTeam">SPRINTCAR RACING TEAM</div>
                     </div>
                 </div>
@@ -35,7 +36,6 @@
                 <div class="lower-third-content">
                     <div class="lower-third-name" id="centerName">SARAH WILLIAMS</div>
                     <div class="lower-third-info">
-                        <div class="lower-third-position" id="centerPosition">P2</div>
                         <div id="centerTeam">MIDGET MOTORSPORT</div>
                     </div>
                 </div>
@@ -49,7 +49,6 @@
                 <div class="lower-third-content">
                     <div class="lower-third-name" id="rightName">MIKE PETERS</div>
                     <div class="lower-third-info">
-                        <div class="lower-third-position" id="rightPosition">P1</div>
                         <div id="rightTeam">STREET STOCK RACING</div>
                     </div>
                 </div>
@@ -80,8 +79,11 @@
         // API for external control
         window.lowerThirdsAPI = {
             // Show a specific lower third
-            show: function(position) {
+            show: async function(position) {
                 if (!lowerThirds[position] || lowerThirds[position].isAnimating) return;
+                
+                // Reload Excel data before showing
+                await loadExcelData();
                 
                 const third = lowerThirds[position];
                 third.isAnimating = true;
@@ -97,11 +99,11 @@
                     third.isAnimating = false;
                 }, 800);
                 
-                console.log(`Lower third ${position} shown`);
+                console.log(`Lower third ${position} shown with fresh Excel data`);
             },
 
             // Hide a specific lower third
-            hide: function(position) {
+            hide: async function(position) {
                 if (!lowerThirds[position] || lowerThirds[position].isAnimating) return;
                 
                 const third = lowerThirds[position];
@@ -112,33 +114,39 @@
                     third.element.classList.remove('show');
                 }, 200);
                 
-                setTimeout(() => {
+                setTimeout(async () => {
                     third.isVisible = false;
                     third.isAnimating = false;
+                    
+                    // Reload Excel data after hiding for next show
+                    await loadExcelData();
                 }, 600);
                 
-                console.log(`Lower third ${position} hidden`);
+                console.log(`Lower third ${position} hidden, Excel data refreshed for next show`);
             },
 
             // Toggle a specific lower third
-            toggle: function(position) {
+            toggle: async function(position) {
                 if (!lowerThirds[position]) return;
                 
                 const third = lowerThirds[position];
                 if (third.isVisible) {
-                    this.hide(position);
+                    await this.hide(position);
                 } else {
-                    this.show(position);
+                    await this.show(position);
                 }
             },
 
             // Hide all lower thirds
-            hideAll: function() {
-                Object.keys(lowerThirds).forEach(position => {
+            hideAll: async function() {
+                const hidePromises = Object.keys(lowerThirds).map(position => {
                     if (lowerThirds[position].isVisible) {
-                        this.hide(position);
+                        return this.hide(position);
                     }
+                    return Promise.resolve();
                 });
+                
+                await Promise.all(hidePromises);
             },
 
             // Update content for a specific lower third
@@ -147,16 +155,12 @@
 
                 const nameEl = document.getElementById(`${position}Name`);
                 const teamEl = document.getElementById(`${position}Team`);
-                const positionEl = document.getElementById(`${position}Position`);
 
                 if (data.name && nameEl) {
                     nameEl.textContent = data.name.toUpperCase();
                 }
                 if (data.team && teamEl) {
                     teamEl.textContent = data.team.toUpperCase();
-                }
-                if (data.position && positionEl) {
-                    positionEl.textContent = data.position;
                 }
 
                 console.log(`Lower third ${position} content updated`, data);
@@ -185,12 +189,67 @@
             }
         });
 
-        // Sample data for testing
-        const sampleData = {
-            left: { name: 'Jack Harrison', team: 'Sprintcar Racing Team', position: 'P3' },
-            center: { name: 'Sarah Williams', team: 'Midget Motorsport', position: 'P2' },
-            right: { name: 'Mike Peters', team: 'Street Stock Racing', position: 'P1' }
-        };
+        // Excel data integration
+        const dataReader = new SpeedwayDataReader();
+        
+        // Function to load Excel data and update lower thirds
+        async function loadExcelData() {
+            try {
+                console.log('=== LOADING FRESH EXCEL DATA FOR LOWER THIRDS ===');
+                const data = await dataReader.loadExcelData();
+                
+                if (data && data.lowerThirds) {
+                    // Map Excel data to lower thirds
+                    // Excel structure: left, centre, right (note: centre vs center)
+                    const excelToPosition = {
+                        'left': 'left',
+                        'centre': 'center', // Map centre to center
+                        'center': 'center',
+                        'right': 'right'
+                    };
+                    
+                    Object.keys(data.lowerThirds).forEach(excelKey => {
+                        const position = excelToPosition[excelKey.toLowerCase()];
+                        if (position && data.lowerThirds[excelKey]) {
+                            const excelData = data.lowerThirds[excelKey];
+                            
+                            // Map title to name and subtitle to team
+                            const lowerThirdData = {
+                                name: excelData.title || 'No Name',
+                                team: excelData.subtitle || 'No Team'
+                            };
+                            
+                            window.lowerThirdsAPI.updateContent(position, lowerThirdData);
+                            console.log(`✓ Fresh data loaded for ${position}:`, lowerThirdData);
+                        }
+                    });
+                    
+                    console.log('=== EXCEL DATA REFRESH COMPLETE ===');
+                    
+                    // Small delay to ensure DOM updates are applied
+                    await new Promise(resolve => setTimeout(resolve, 50));
+                } else {
+                    console.warn('No lower thirds data found in Excel, using fallback');
+                    loadFallbackData();
+                }
+            } catch (error) {
+                console.error('Failed to load Excel data for lower thirds:', error);
+                loadFallbackData();
+            }
+        }
+        
+        // Fallback data for when Excel loading fails
+        function loadFallbackData() {
+            const fallbackData = {
+                left: { name: 'Excel Error', team: 'Check Excel File' },
+                center: { name: 'Excel Error', team: 'Check Excel File' },
+                right: { name: 'Excel Error', team: 'Check Excel File' }
+            };
+            
+            Object.keys(fallbackData).forEach(position => {
+                window.lowerThirdsAPI.updateContent(position, fallbackData[position]);
+            });
+        }
 
         // Initialize
         function init() {
@@ -201,12 +260,13 @@
             console.log('3 = Toggle Right Lower Third');
             console.log('ESC = Hide All Lower Thirds');
             console.log('API available at window.lowerThirdsAPI');
+            
+            // Load Excel data
+            loadExcelData();
         }
-
-        // Load sample data
-        Object.keys(sampleData).forEach(position => {
-            window.lowerThirdsAPI.updateContent(position, sampleData[position]);
-        });
+        
+        // Expose Excel reload function for manual refresh
+        window.loadExcelData = loadExcelData;
 
         // Initialize when page loads
         document.addEventListener('DOMContentLoaded', init);

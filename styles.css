@@ -368,8 +368,8 @@ body {
 }
 
 .rider-number {
-    background: var(--team-default, #5a78c7);
-    color: var(--text-hi);
+    background: #ffffff; /* White background */
+    color: #000000; /* Black text */
     font-weight: 700;
     font-size: 14px;
     padding: 3px 4px; /* Reduced padding for tighter fit */
@@ -520,8 +520,8 @@ body {
 }
 
 .strip-rider .rider-number {
-    background: var(--team-default, #5a78c7);
-    color: var(--text-hi);
+    background: #ffffff; /* White background */
+    color: #000000; /* Black text */
     font-weight: 700;
     font-size: 13px; /* Increased from 11px (slightly larger) */
     padding: 3px 7px; /* Slightly larger padding */

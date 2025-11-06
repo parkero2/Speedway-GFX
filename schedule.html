@@ -11,6 +11,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="speedway-data-reader.js"></script>
 </head>
 <body>
     <div id="overlay" class="overlay">
@@ -132,7 +134,7 @@
 
         .schedule-columns {
             display: grid;
-            grid-template-columns: 1fr 1fr 2fr 2fr 1fr;
+            grid-template-columns: 0.6fr 1fr 2fr 2fr 1fr;
             background: var(--bg-800);
             border-bottom: 2px solid var(--line);
         }
@@ -140,7 +142,7 @@
         .schedule-column-header {
             padding: 12px 16px;
             font-weight: 700;
-            font-size: 12px;
+            font-size: 15.6px; /* 30% larger than 12px */
             text-transform: uppercase;
             letter-spacing: 0.5px;
             color: var(--text-med);
@@ -166,7 +168,7 @@
 
         .schedule-row {
             display: grid;
-            grid-template-columns: 1fr 1fr 2fr 2fr 1fr;
+            grid-template-columns: 0.6fr 1fr 2fr 2fr 1fr;
             background: var(--bg-800);
             border-bottom: 1px solid var(--line);
             transition: all 150ms ease-out;
@@ -197,7 +199,7 @@
 
         .schedule-cell {
             padding: 14px 16px;
-            font-size: 14px;
+            font-size: 18.2px; /* 30% larger than 14px */
             color: var(--text-hi);
             border-right: 1px solid var(--line);
             display: flex;
@@ -219,6 +221,7 @@
 
         .schedule-cell.event-cell {
             font-weight: 600;
+            justify-content: center; /* Center justify numbers in event column */
         }
 
         .schedule-cell.class-cell {
@@ -228,9 +231,36 @@
         .schedule-cell.session-cell {
             font-weight: 500;
             text-transform: uppercase;
-            font-size: 12px;
+            font-size: 15.6px; /* 30% larger than 12px */
             letter-spacing: 0.3px;
         }
+
+        /* Feature race styling - light grey background with dark text */
+        .schedule-row.feature-race {
+            background: rgba(220, 220, 220, 0.95) !important; /* Very light grey background */
+            border-left: 4px solid #888888 !important; /* Add a grey border to make it obvious */
+        }
+
+        .schedule-row.feature-race .schedule-cell {
+            color: #2a2a2a !important; /* Very dark grey text */
+            font-weight: 600 !important; /* Slightly bold for better readability */
+        }
+
+        .schedule-row.feature-race:hover {
+            background: rgba(210, 210, 210, 0.95) !important; /* Slightly darker on hover */
+        }
+
+        /* Debug styling removed - no more Feature text */
+        /* .schedule-row.feature-race::after {
+            content: " [FEATURE]";
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #ff0000;
+            font-weight: bold;
+            font-size: 10px;
+        } */
 
         /* White wipe effect */
         .schedule-row::before {
@@ -279,7 +309,7 @@
 
         .schedule-hashtag-line span {
             font-weight: 700;
-            font-size: 16px;
+            font-size: 20.8px; /* 30% larger than 16px */
             color: var(--text-hi);
             text-transform: uppercase;
             letter-spacing: 0.5px;
@@ -321,6 +351,13 @@
             isAnimating: false
         };
 
+        // Scroll state
+        let scrollState = {
+            isAtTop: true,
+            totalRows: 0,
+            maxVisibleRows: 15
+        };
+
         // Event data (will be loaded from sample-data.json)
         let eventData = {
             venue: "Loading...",
@@ -354,33 +391,100 @@
             return now.toTimeString().slice(0, 5); // Format: HH:MM
         }
 
-        // Sample schedule data with realistic speedway content
-        const scheduleData = [
-            { event: "1", time: "17:00", class: "Ministocks", session: "Heat 1", laps: "10" },
-            { event: "2", time: "17:15", class: "Midgets", session: "Heat 1", laps: "12" },
-            { event: "3", time: "17:30", class: "Street Stocks", session: "Heat 1", laps: "15" },
-            { event: "4", time: "17:45", class: "Sprintcars", session: "Heat 1", laps: "15" },
-            { event: "5", time: "18:00", class: "Super Saloons", session: "Heat 1", laps: "15" },
-            { event: "6", time: "18:20", class: "Ministocks", session: "Heat 2", laps: "10" },
-            { event: "7", time: "18:35", class: "Midgets", session: "Heat 2", laps: "12" },
-            { event: "8", time: "18:50", class: "Street Stocks", session: "Heat 2", laps: "15" },
-            { event: "9", time: "19:05", class: "Sprintcars", session: "Heat 2", laps: "15" },
-            { event: "10", time: "19:25", class: "Super Saloons", session: "Heat 2", laps: "15" },
-            { event: "11", time: "19:45", class: "Ministocks", session: "Feature Race", laps: "20" },
-            { event: "12", time: "20:05", class: "Midgets", session: "Feature Race", laps: "25" },
-            { event: "13", time: "20:30", class: "Street Stocks", session: "Feature Race", laps: "25" },
-            { event: "14", time: "20:55", class: "Sprintcars", session: "Feature Race", laps: "25" },
-            { event: "15", time: "21:25", class: "Super Saloons", session: "Feature Race", laps: "25" }
+        // Schedule data - will be loaded from Excel
+        let scheduleData = [
+            // Fallback data if Excel loading fails
+            { event: "ERR", time: "ERR", class: "ERR - Excel Not Loaded", session: "ERR - Excel Not Loaded", laps: "ERR", featureRace: false },
+            { event: "ERR", time: "ERR", class: "ERR - Excel Not Loaded", session: "ERR - Excel Not Loaded", laps: "ERR", featureRace: false },
+            { event: "ERR", time: "ERR", class: "ERR - Excel Not Loaded", session: "ERR - Excel Not Loaded", laps: "ERR", featureRace: false }
         ];
+
+        // Load schedule data from Excel
+        async function loadScheduleFromExcel() {
+            try {
+                console.log('=== STARTING EXCEL LOAD ===');
+                
+                if (!window.speedwayData) {
+                    console.error('speedwayData not available');
+                    return false;
+                }
+                
+                await window.speedwayData.loadExcelData();
+                const excelScheduleData = window.speedwayData.getScheduleData();
+                
+                console.log('Raw Excel schedule data:', excelScheduleData);
+                console.log('Number of schedule rows from Excel:', excelScheduleData ? excelScheduleData.length : 0);
+                
+                if (excelScheduleData && excelScheduleData.length > 0) {
+                    // Map Excel data to schedule format
+                    scheduleData = excelScheduleData.map((item, index) => {
+                        const featureRaceValue = item.featureRace;
+                        const isFeatureRace = featureRaceValue === 'true' || featureRaceValue === true || featureRaceValue === 'TRUE';
+                        
+                        console.log(`Row ${index + 1}: featureRace = "${featureRaceValue}" (type: ${typeof featureRaceValue}) -> isFeatureRace: ${isFeatureRace}`);
+                        
+                        return {
+                            event: (index + 1).toString(),
+                            time: item.time || 'ERR',
+                            class: item.event || 'ERR', // Excel 'event' becomes 'class' in display
+                            session: item.description || 'ERR',
+                            laps: item.notes || item.duration || 'ERR',
+                            featureRace: isFeatureRace
+                        };
+                    });
+                    
+                    console.log('Mapped schedule data:', scheduleData);
+                    console.log('Final schedule data length:', scheduleData.length);
+                    
+                    // Re-render schedule with new data
+                    renderSchedule();
+                    
+                    // Update event info from Excel
+                    const eventInfo = window.speedwayData.getEventInfo();
+                    if (eventInfo && eventInfo.venueName) {
+                        document.getElementById('eventName').textContent = eventInfo.venueName.toUpperCase();
+                    }
+                    if (eventInfo && eventInfo.eventName) {
+                        document.getElementById('scheduleHashtag').textContent = `#${eventInfo.eventName.replace(/\s+/g, '')}`;
+                    }
+                    
+                    console.log('=== EXCEL LOAD SUCCESS ===');
+                    return true;
+                } else {
+                    console.warn('No schedule data found in Excel or empty schedule');
+                    console.log('=== EXCEL LOAD FAILED - NO DATA ===');
+                    return false;
+                }
+            } catch (error) {
+                console.error('Failed to load schedule from Excel:', error);
+                console.log('=== EXCEL LOAD FAILED - ERROR ===');
+                return false;
+            }
+        }
 
         // Initialize schedule
         async function init() {
             setupEventListeners();
-            await loadEventData(); // Load data from JSON first
+            
+            // Try to load schedule from Excel first
+            const excelLoaded = await loadScheduleFromExcel();
+            
+            if (!excelLoaded) {
+                // Fallback to loading from JSON if Excel fails
+                await loadEventData();
+            }
+            
             renderSchedule();
+            updateUI();
             console.log('Schedule display initialized');
-            console.log('Keyboard shortcuts: SPACE (toggle schedule), ESC (hide schedule)');
+            console.log('Keyboard shortcuts: SPACE (toggle schedule), ESC (hide schedule), R (reload Excel data)');
         }
+
+        // Listen for Excel data loading events
+        document.addEventListener('speedwayDataLoaded', function(event) {
+            console.log('Speedway data loaded in schedule');
+            loadScheduleFromExcel();
+        });
 
         // Update UI elements with current data
         function updateUI() {
@@ -411,6 +515,11 @@
                 case 'escape':
                     hideSchedule();
                     break;
+                case 'r':
+                    // R key to reload Excel data
+                    console.log('Reloading schedule from Excel...');
+                    loadScheduleFromExcel();
+                    break;
             }
         }
 
@@ -430,6 +539,11 @@
             if (scheduleState.isAnimating || scheduleState.isVisible) return;
             
             scheduleState.isAnimating = true;
+            
+            // Refresh Excel data before showing
+            console.log('Refreshing Excel data before showing schedule...');
+            await loadScheduleFromExcel();
+            
             const schedule = document.getElementById('schedule');
             const hashtagLine = document.getElementById('scheduleHashtagLine');
             
@@ -490,6 +604,10 @@
             // Wait for animation
             await sleep(400);
             
+            // Refresh Excel data after hiding for next time
+            console.log('Refreshing Excel data after hiding schedule...');
+            loadScheduleFromExcel(); // Don't await this, let it run in background
+            
             scheduleState.isVisible = false;
             scheduleState.isAnimating = false;
             
@@ -506,12 +624,23 @@
                 const row = createScheduleRow(item, index);
                 container.appendChild(row);
             });
+
+            // Update scroll state
+            updateScrollState();
         }
 
         // Create schedule row element
         function createScheduleRow(data, index) {
             const row = document.createElement('div');
             row.className = 'schedule-row';
+            
+            // Add feature race class if this is a feature race
+            if (data.featureRace) {
+                row.classList.add('feature-race');
+                console.log(`Adding feature-race class to row ${index + 1}:`, data);
+            } else {
+                console.log(`Regular row ${index + 1}:`, data);
+            }
 
             row.innerHTML = `
                 <div class="schedule-cell event-cell">${data.event}</div>
@@ -524,13 +653,56 @@
             return row;
         }
 
+        // Update scroll state 
+        function updateScrollState() {
+            scrollState.totalRows = scheduleData.length;
+            scrollState.isAtTop = true; // Reset to top when data changes
+        }
+
+        // Handle scroll toggle (keyboard only for broadcast)
+        function toggleScroll() {
+            const scheduleRows = document.getElementById('scheduleRows');
+            
+            if (scrollState.totalRows <= scrollState.maxVisibleRows) {
+                // No scrolling needed
+                return;
+            }
+            
+            if (scrollState.isAtTop) {
+                // Scroll to bottom
+                scheduleRows.scrollTo({
+                    top: scheduleRows.scrollHeight,
+                    behavior: 'smooth'
+                });
+                scrollState.isAtTop = false;
+            } else {
+                // Scroll to top
+                scheduleRows.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+                scrollState.isAtTop = true;
+            }
+        }
+
         // Utility function for delays
         function sleep(ms) {
             return new Promise(resolve => setTimeout(resolve, ms));
         }
 
         // Initialize when page loads
-        document.addEventListener('DOMContentLoaded', init);
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize the app
+            init();
+            
+            // Add keyboard shortcut for scrolling (S key) - broadcast friendly
+            document.addEventListener('keydown', function(event) {
+                if (event.key.toLowerCase() === 's' && scrollState.totalRows > scrollState.maxVisibleRows) {
+                    event.preventDefault();
+                    toggleScroll();
+                }
+            });
+        });
     </script>
 </body>
 </html>

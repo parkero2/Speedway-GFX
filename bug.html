@@ -12,6 +12,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="speedway-data-reader.js"></script>
     <script>
         window.SPXGCTemplateDefinition = {
             description: "Bug Graphic",
@@ -190,6 +192,48 @@
             </div>
         </div>
     </div>
+
+    <script>
+        // Excel data integration for hashtag
+        const dataReader = new SpeedwayDataReader();
+        
+        // Function to load Excel data and update hashtag
+        async function loadExcelHashtag() {
+            try {
+                console.log('Loading Excel data for hashtag...');
+                const data = await dataReader.loadExcelData();
+                
+                if (data && data.eventInfo && data.eventInfo.hashtag) {
+                    let hashtag = data.eventInfo.hashtag.trim();
+                    
+                    // Ensure hashtag starts with #
+                    if (!hashtag.startsWith('#')) {
+                        hashtag = '#' + hashtag;
+                    }
+                    
+                    // Update the hashtag display
+                    const hashtagElement = document.getElementById('hashtag');
+                    if (hashtagElement) {
+                        hashtagElement.textContent = hashtag;
+                        console.log('Hashtag updated to:', hashtag);
+                    }
+                } else {
+                    console.warn('No hashtag found in Excel data');
+                }
+            } catch (error) {
+                console.error('Failed to load Excel hashtag:', error);
+            }
+        }
+        
+        // Load hashtag when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // Small delay to ensure app.js loads first
+            setTimeout(loadExcelHashtag, 100);
+        });
+        
+        // Also expose function to window for manual refresh
+        window.loadExcelHashtag = loadExcelHashtag;
+    </script>
 
     <script src="app.js"></script>
 </body>
