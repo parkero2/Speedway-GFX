@@ -1527,6 +1527,16 @@ function toggleTower() {
     }
 }
 
+function hideStrip() {
+    appState.ui.showStrip = false;
+    elements.showStrip.checked = appState.ui.showStrip;
+    updateUI();
+    saveStateToStorage();
+    
+    // Reset animation state when strip closes
+    resetStripAnimationState();
+}
+
 // Toggle timing strip visibility
 function toggleStrip() {
     appState.ui.showStrip = !appState.ui.showStrip;
