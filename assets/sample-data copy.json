@@ -1,0 +1,33 @@
+{
+  "event": {
+    "venue": "Mercury Baypark",
+    "hashtag": "#BayparkSpeedway",
+    "totalLaps": 20,
+    "currentLap": 3,
+    "flag": "no-light"
+  },
+  "riders": [
+    { "pos": 1, "first": "M", "last": "PICKENS", "num": "1NZ", "teamColor": "#ff0000" },
+    { "pos": 2, "first": "J", "last": "MADSEN", "num": "2A", "teamColor": "#0066cc" },
+    { "pos": 3, "first": "R", "last": "DOUGLAS", "num": "3", "teamColor": "#00cc00" },
+    { "pos": 4, "first": "S", "last": "MASTERS", "num": "4M", "teamColor": "#ffcc00" },
+    { "pos": 5, "first": "B", "last": "WILSON", "num": "55M", "teamColor": "#ff6600" },
+    { "pos": 6, "first": "D", "last": "MCFADDEN", "num": "6NZ", "teamColor": "#9900cc" },
+    { "pos": 7, "first": "C", "last": "MORRIS", "num": "7K", "teamColor": "#ff3399" },
+    { "pos": 8, "first": "T", "last": "BEATTIE", "num": "8", "teamColor": "#00ccff" },
+    { "pos": 9, "first": "M", "last": "RICH", "num": "9A", "teamColor": "#ccff00" },
+    { "pos": 10, "first": "J", "last": "STEWART", "num": "10NZ", "teamColor": "#ff9933" },
+    { "pos": 11, "first": "K", "last": "MILLAR", "num": "11", "teamColor": "#3366ff" },
+    { "pos": 12, "first": "D", "last": "SMITH", "num": "12M", "teamColor": "#cc3300" },
+    { "pos": 13, "first": "L", "last": "ROSE", "num": "13K", "teamColor": "#009966" },
+    { "pos": 14, "first": "B", "last": "LAMBERT", "num": "14", "teamColor": "#ff6699" },
+    { "pos": 15, "first": "T", "last": "HARRIS", "num": "15A", "teamColor": "#6600cc" },
+    { "pos": 16, "first": "A", "last": "SUMMERS", "num": "16NZ", "teamColor": "#ff9900" },
+    { "pos": 17, "first": "S", "last": "COCKERILL", "num": "17", "teamColor": "#0099cc" },
+    { "pos": 18, "first": "J", "last": "HUNNIBELL", "num": "18M", "teamColor": "#cc6600" },
+    { "pos": 19, "first": "M", "last": "WATSON", "num": "19K", "teamColor": "#9933ff" },
+    { "pos": 20, "first": "P", "last": "BOYD", "num": "20NZ", "teamColor": "#33cc66" },
+    { "pos": 21, "first": "R", "last": "KING", "num": "21A", "teamColor": "#ff3366" },
+    { "pos": 22, "first": "D", "last": "MEEHAN", "num": "22", "teamColor": "#6699ff" }
+  ]
+}

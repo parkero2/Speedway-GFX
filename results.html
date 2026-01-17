@@ -58,10 +58,10 @@
                         <img src="assets/logo.svg" alt="Logo" class="header-logo">
                     </div>
                     <div class="results-title">
-                        <span id="raceTitle">FEATURE RACE RESULTS</span>
+                        <span id="raceTitle">RACE RESULTS</span>
                     </div>
                     <div class="results-info">
-                        <span id="raceInfo">20 LAPS</span>
+                        <span id="raceInfo"></span>
                     </div>
                 </div>
 
@@ -70,7 +70,6 @@
                     <div class="results-column-header pos-col">POS</div>
                     <div class="results-column-header number-col">#</div>
                     <div class="results-column-header driver-col">DRIVER</div>
-                    <div class="results-column-header team-col">TEAM</div>
                     <div class="results-column-header gap-col">GAP</div>
                 </div>
 
@@ -166,7 +165,7 @@
 
         .results-columns {
             display: grid;
-            grid-template-columns: 0.8fr 0.8fr 3fr 2.5fr 1.2fr;
+            grid-template-columns: 0.8fr 0.8fr 5.5fr 1.2fr;
             background: var(--bg-800);
             border-bottom: 2px solid var(--line);
         }
@@ -201,7 +200,7 @@
 
         .results-row {
             display: grid;
-            grid-template-columns: 0.8fr 0.8fr 3fr 2.5fr 1.2fr;
+            grid-template-columns: 0.8fr 0.8fr 5.5fr 1.2fr;
             background: var(--bg-800);
             border-bottom: 1px solid var(--line);
             transition: all 150ms ease-out;
@@ -535,8 +534,8 @@
 
         // Event data
         let eventData = {
-            raceTitle: "Feature Race Results",
-            raceInfo: "20 Laps",
+            raceTitle: "Race Results",
+            raceInfo: "",
             hashtag: "#Loading"
         };
 
@@ -728,7 +727,6 @@
                 <div class="results-cell pos-cell">${data.position}</div>
                 <div class="results-cell number-cell">${data.number}</div>
                 <div class="results-cell driver-cell">${data.driver}</div>
-                <div class="results-cell team-cell">${data.team}</div>
                 <div class="results-cell gap-cell">${data.gap}</div>
             `;
 

@@ -195,6 +195,14 @@ async function loadTimingData() {
     } catch (error) {
         console.warn('Could not load timing data:', error.message);
         
+        // PROTECTION: Ensure we have riders when tower/strip are visible
+        if ((appState.ui.showTower || appState.ui.showStrip) && appState.riders.length === 0) {
+            console.log('Timing data failed and no riders available - generating fallback riders');
+            appState.riders = generateFallbackRiders();
+            updateRidersContent();
+            updateStripContent();
+        }
+        
         // Show error status briefly
         if (elements.timingStatus) {
             const originalText = elements.timingStatus.textContent;
@@ -352,21 +360,32 @@ function updateStateFromTimingData(timingData) {
         };
     });
     
-    // Check if rider data has changed
-    if (!ridersAreEqual(appState.riders, newRiders)) {
+    // PROTECTION: Never allow empty riders when tower or strip are visible
+    const finalRiders = (newRiders.length === 0 && (appState.ui.showTower || appState.ui.showStrip)) 
+        ? appState.riders.length > 0 
+            ? appState.riders  // Keep existing riders if we have them
+            : generateFallbackRiders()  // Generate fallback if we have nothing
+        : newRiders;
+    
+    // Check if rider data has changed (but only if we're using new data)
+    if (newRiders.length > 0 && !ridersAreEqual(appState.riders, finalRiders)) {
         // Check if this is a position reorder (for animation)
-        const isReorder = appState.riders.length === newRiders.length && 
+        const isReorder = appState.riders.length === finalRiders.length && 
                          appState.riders.every(oldRider => 
-                             newRiders.some(newRider => newRider.num === oldRider.num));
+                             finalRiders.some(newRider => newRider.num === oldRider.num));
         
         if (isReorder && (appState.ui.showTower || appState.ui.showStrip)) {
             // Use reorder animation for position changes
-            updateRiders(newRiders);
+            updateRiders(finalRiders);
         } else {
             // Simple update without animation
-            appState.riders = newRiders;
+            appState.riders = finalRiders;
         }
         hasChanges = true;
+    } else if (newRiders.length === 0) {
+        // No new data available, but we protected against empty riders above
+        console.log('No timing position data available - maintaining current rider display');
+        hasChanges = false;  // Don't trigger UI update for empty data
     }
     
     // Store leader and fastest lap info for potential display
@@ -809,28 +828,28 @@ function updateWeatherStatus(message = null) {
 // Generate fallback rider data
 function generateFallbackRiders() {
     const riders = [
-        { pos: 1, first: "E", last: "ERR", num: 1, teamColor: "#ffffff" },
-        { pos: 2, first: "E", last: "ERR", num: 2, teamColor: "#ffffff" },
-        { pos: 3, first: "E", last: "ERR", num: 3, teamColor: "#ffffff" },
-        { pos: 4, first: "E", last: "ERR", num: 4, teamColor: "#ffffff" },
-        { pos: 5, first: "E", last: "ERR", num: 5, teamColor: "#ffffff" },
-        { pos: 6, first: "E", last: "ERR", num: 6, teamColor: "#ffffff" },
-        { pos: 7, first: "E", last: "ERR", num: 7, teamColor: "#ffffff" },
-        { pos: 8, first: "E", last: "ERR", num: 8, teamColor: "#ffffff" },
-        { pos: 9, first: "E", last: "ERR", num: 9, teamColor: "#ffffff" },
-        { pos: 10, first: "E", last: "ERR", num: 10, teamColor: "#ffffff" },
-        { pos: 11, first: "E", last: "ERR", num: 11, teamColor: "#ffffff" },
-        { pos: 12, first: "E", last: "ERR", num: 12, teamColor: "#ffffff" },
-        { pos: 13, first: "E", last: "ERR", num: 13, teamColor: "#ffffff" },
-        { pos: 14, first: "E", last: "ERR", num: 14, teamColor: "#ffffff" },
-        { pos: 15, first: "E", last: "ERR", num: 15, teamColor: "#ffffff" },
-        { pos: 16, first: "E", last: "ERR", num: 16, teamColor: "#ffffff" },
-        { pos: 17, first: "E", last: "ERR", num: 17, teamColor: "#ffffff" },
-        { pos: 18, first: "E", last: "ERR", num: 18, teamColor: "#ffffff" },
-        { pos: 19, first: "E", last: "ERR", num: 19, teamColor: "#ffffff" },
-        { pos: 20, first: "E", last: "ERR", num: 20, teamColor: "#ffffff" },
-        { pos: 21, first: "E", last: "ERR", num: 21, teamColor: "#ffffff" },
-        { pos: 22, first: "E", last: "ERR", num: 22, teamColor: "#ffffff" }
+        // { pos: 1, first: "E", last: "ERR", num: 1, teamColor: "#ffffff" },
+        // { pos: 2, first: "E", last: "ERR", num: 2, teamColor: "#ffffff" },
+        // { pos: 3, first: "E", last: "ERR", num: 3, teamColor: "#ffffff" },
+        // { pos: 4, first: "E", last: "ERR", num: 4, teamColor: "#ffffff" },
+        // { pos: 5, first: "E", last: "ERR", num: 5, teamColor: "#ffffff" },
+        // { pos: 6, first: "E", last: "ERR", num: 6, teamColor: "#ffffff" },
+        // { pos: 7, first: "E", last: "ERR", num: 7, teamColor: "#ffffff" },
+        // { pos: 8, first: "E", last: "ERR", num: 8, teamColor: "#ffffff" },
+        // { pos: 9, first: "E", last: "ERR", num: 9, teamColor: "#ffffff" },
+        // { pos: 10, first: "E", last: "ERR", num: 10, teamColor: "#ffffff" },
+        // { pos: 11, first: "E", last: "ERR", num: 11, teamColor: "#ffffff" },
+        // { pos: 12, first: "E", last: "ERR", num: 12, teamColor: "#ffffff" },
+        // { pos: 13, first: "E", last: "ERR", num: 13, teamColor: "#ffffff" },
+        // { pos: 14, first: "E", last: "ERR", num: 14, teamColor: "#ffffff" },
+        // { pos: 15, first: "E", last: "ERR", num: 15, teamColor: "#ffffff" },
+        // { pos: 16, first: "E", last: "ERR", num: 16, teamColor: "#ffffff" },
+        // { pos: 17, first: "E", last: "ERR", num: 17, teamColor: "#ffffff" },
+        // { pos: 18, first: "E", last: "ERR", num: 18, teamColor: "#ffffff" },
+        // { pos: 19, first: "E", last: "ERR", num: 19, teamColor: "#ffffff" },
+        // { pos: 20, first: "E", last: "ERR", num: 20, teamColor: "#ffffff" },
+        // { pos: 21, first: "E", last: "ERR", num: 21, teamColor: "#ffffff" },
+        // { pos: 22, first: "E", last: "ERR", num: 22, teamColor: "#ffffff" }
     ];
     return riders;
 }
@@ -1096,6 +1115,12 @@ function updateUI() {
 
 // Update rider content without full re-render or animations
 function updateRidersContent() {
+    // PROTECTION: Ensure we have riders when tower is visible
+    if (appState.ui.showTower && appState.riders.length === 0) {
+        console.log('Tower is visible but no riders available - generating fallback riders');
+        appState.riders = generateFallbackRiders();
+    }
+    
     const existingRows = elements.riderRows.querySelectorAll('.rider-row:not(.empty-row)');
     const maxRiders = 17;
     const ridersToShow = appState.riders.slice(0, maxRiders);
@@ -1135,6 +1160,12 @@ function updateRidersContent() {
 
 // Update strip content without full re-render or animations
 function updateStripContent() {
+    // PROTECTION: Ensure we have riders when strip is visible
+    if (appState.ui.showStrip && appState.riders.length === 0) {
+        console.log('Strip is visible but no riders available - generating fallback riders');
+        appState.riders = generateFallbackRiders();
+    }
+    
     const existingItems = elements.stripRows.querySelectorAll('.strip-rider');
     const maxRiders = 15;
     const ridersToShow = appState.riders.slice(0, maxRiders);
@@ -1508,6 +1539,23 @@ function resetStripAnimationState() {
     });
 }
 
+function towerUp() {
+    appState.ui.showTower = true;
+    elements.showTower.checked = appState.ui.showTower;
+    updateUI();
+    saveStateToStorage();
+}
+
+function towerDown() {
+    appState.ui.showTower = false;
+    elements.showTower.checked = appState.ui.showTower;
+    updateUI();
+    saveStateToStorage();
+    
+    // Reset animation state when tower closes
+    resetTowerAnimationState();
+}
+
 // Toggle tower visibility
 function toggleTower() {
     appState.ui.showTower = !appState.ui.showTower;
@@ -1516,6 +1564,12 @@ function toggleTower() {
     saveStateToStorage();
     
     if (appState.ui.showTower) {
+        // PROTECTION: Ensure we have riders to display
+        if (appState.riders.length === 0) {
+            console.log('Tower opened but no riders available - generating fallback riders');
+            appState.riders = generateFallbackRiders();
+        }
+        
         // Reset animation state and trigger reveal animation when tower opens
         resetTowerAnimationState();
         setTimeout(() => {
@@ -1545,6 +1599,12 @@ function toggleStrip() {
     saveStateToStorage();
     
     if (appState.ui.showStrip) {
+        // PROTECTION: Ensure we have riders to display
+        if (appState.riders.length === 0) {
+            console.log('Strip opened but no riders available - generating fallback riders');
+            appState.riders = generateFallbackRiders();
+        }
+        
         // Reset animation state and trigger reveal animation when strip opens
         resetStripAnimationState();
         setTimeout(() => {

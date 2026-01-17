@@ -72,9 +72,8 @@
                 <!-- Column Headers -->
                 <div class="schedule-columns">
                     <div class="schedule-column-header event-col">EVENT</div>
-                    <div class="schedule-column-header time-col">TIME</div>
                     <div class="schedule-column-header class-col">CLASS</div>
-                    <div class="schedule-column-header session-col">SESSION</div>
+                    <div class="schedule-column-header session-col">HEAT</div>
                     <div class="schedule-column-header laps-col">LAPS</div>
                 </div>
 
@@ -189,7 +188,7 @@
 
         .schedule-columns {
             display: grid;
-            grid-template-columns: 0.6fr 1fr 4fr 1fr 1fr;
+            grid-template-columns: 0.6fr 1fr 2fr 1fr;
             background: var(--bg-800);
             border-bottom: 2px solid var(--line);
         }
@@ -210,6 +209,7 @@
         }
 
         .time-col,
+        .time-col,
         .laps-col {
             text-align: center;
         }
@@ -223,7 +223,7 @@
 
         .schedule-row {
             display: grid;
-            grid-template-columns: 0.6fr 1fr 4fr 1fr 1fr;
+            grid-template-columns: 0.6fr 1fr 2fr 1fr;
             background: var(--bg-800);
             border-bottom: 1px solid var(--line);
             transition: all 150ms ease-out;
@@ -268,6 +268,7 @@
         }
 
         .schedule-cell.time-cell,
+        .schedule-cell.time-cell,
         .schedule-cell.laps-cell {
             justify-content: center;
             font-weight: 700;
@@ -279,8 +280,14 @@
             justify-content: center; /* Center justify numbers in event column */
         }
 
+        .schedule-cell.event-name-cell {
+            font-weight: 500;
+            font-size: 18.2px;
+        }
+
         .schedule-cell.class-cell {
             font-weight: 500;
+            font-size: 17.4px; /* 20% smaller than 21.8px */
         }
 
         .schedule-cell.session-cell {
@@ -373,6 +380,7 @@
         /* Scrollbar styling */
         .schedule-rows::-webkit-scrollbar {
             width: 6px;
+            display: none;
         }
 
         .schedule-rows::-webkit-scrollbar-track {
@@ -458,9 +466,9 @@
         // Schedule data - will be loaded from Excel
         let scheduleData = [
             // Fallback data if Excel loading fails
-            { event: "ERR", time: "ERR", class: "ERR - Excel Not Loaded", session: "ERR - Excel Not Loaded", laps: "ERR", featureRace: false },
-            { event: "ERR", time: "ERR", class: "ERR - Excel Not Loaded", session: "ERR - Excel Not Loaded", laps: "ERR", featureRace: false },
-            { event: "ERR", time: "ERR", class: "ERR - Excel Not Loaded", session: "ERR - Excel Not Loaded", laps: "ERR", featureRace: false }
+            { event: "ERR", eventName: "ERR - Excel Not Loaded", class: "ERR", session: "ERR - Excel Not Loaded", laps: "ERR", featureRace: false },
+            { event: "ERR", eventName: "ERR - Excel Not Loaded", class: "ERR", session: "ERR - Excel Not Loaded", laps: "ERR", featureRace: false },
+            { event: "ERR", eventName: "ERR - Excel Not Loaded", class: "ERR", session: "ERR - Excel Not Loaded", laps: "ERR", featureRace: false }
         ];
 
         // Load schedule data from Excel
@@ -480,6 +488,9 @@
                 console.log('Number of schedule rows from Excel:', excelScheduleData ? excelScheduleData.length : 0);
                 
                 if (excelScheduleData && excelScheduleData.length > 0) {
+                    console.log('First Excel schedule item properties:', Object.keys(excelScheduleData[0]));
+                    console.log('First Excel schedule item:', excelScheduleData[0]);
+                    
                     // Map Excel data to schedule format
                     scheduleData = excelScheduleData.map((item, index) => {
                         const featureRaceValue = item.featureRace;
@@ -489,8 +500,8 @@
                         
                         return {
                             event: (index + 1).toString(),
-                            time: item.time || 'ERR',
-                            class: item.event || 'ERR', // Excel 'event' becomes 'class' in display
+                            eventName: item.event || 'ERR', // Column B - Excel 'event' field
+                            class: item.status || 'ERR', // Column E - Excel 'status' field (or use description)
                             session: item.description || 'ERR',
                             laps: item.notes || item.duration || 'ERR',
                             featureRace: isFeatureRace
@@ -726,7 +737,6 @@
 
             row.innerHTML = `
                 <div class="schedule-cell event-cell">${data.event}</div>
-                <div class="schedule-cell time-cell">${data.time}</div>
                 <div class="schedule-cell class-cell">${data.class}</div>
                 <div class="schedule-cell session-cell">${data.session}</div>
                 <div class="schedule-cell laps-cell">${data.laps}</div>
@@ -790,6 +800,13 @@
                 }
             });
         });
+
+        // Expose functions to global scope for external access
+        window.toggleSchedule = toggleSchedule;
+        window.showSchedule = showSchedule;
+        window.hideSchedule = hideSchedule;
+        window.loadScheduleFromExcel = loadScheduleFromExcel;
+        window.toggleScroll = toggleScroll;
     </script>
 </body>
 </html>

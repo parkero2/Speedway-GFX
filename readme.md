@@ -11,6 +11,8 @@
     - [x] Lower thirds
     - [ ] Results
     - [x] Schedule
+    - [ ] Make LT's bigger font
+    - [ ] Race info
 
 - Long term
     - [ ] Grid lineup
