@@ -2,7 +2,7 @@
 let appState = {
     event: {
         venue: "Sepang International Circuit",
-        hashtag: "#MalaysianGP",
+        hashtag: "#Baypark",
         totalLaps: 20,
         currentLap: 3,
         flag: "no-light"

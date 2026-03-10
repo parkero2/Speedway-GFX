@@ -2,8 +2,8 @@
   "event": {
     "venue": "Baypark Speedway",
     "hashtag": "#BayparkSpeedway",
-    "totalLaps": 20,
-    "currentLap": 3,
+    "totalLaps": 8,
+    "currentLap": 0,
     "flag": "no-light"
   },
   "riders": [

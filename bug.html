@@ -195,6 +195,11 @@
     </div>
 
     <script>
+
+        document.addEventListener("DOMContentLoaded", function() {
+            setHashtag(appState.event.hashtag);
+        });
+
         function runAnimationOUT() {
             // Hide all visible components by setting opacity to 0 (for testing)
             const bug = document.getElementById('bug');
